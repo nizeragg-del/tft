@@ -2,6 +2,15 @@ export type Tier = 1 | 2 | 3 | 4 | 5;
 export type GamePhase = 'PLANNING' | 'COMBAT';
 export type Team = 'PLAYER' | 'ENEMY';
 
+export interface User {
+    id: string;
+    username: string;
+    email: string;
+    elo: number;
+    wins: number;
+    losses: number;
+}
+
 export interface CardTemplate {
     id: string;
     name: string;

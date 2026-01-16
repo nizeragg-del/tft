@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import seedrandom from 'seedrandom';
 import { CardTemplate, CardInstance, GameState, GamePhase, Team } from './types';
 import { CARD_TEMPLATES, MONSTER_TEMPLATES, WAVES } from './data';
 import { ABILITIES } from './abilities';
-import { ShoppingCart, LayoutGrid, Users, Trophy, Heart, Coins, ArrowUpCircle, RefreshCw, Shield, Swords, Zap } from 'lucide-react';
+import { ShoppingCart, LayoutGrid, Users, Trophy, Heart, Coins, ArrowUpCircle, RefreshCw, Shield, Swords, Zap, LogOut, Loader2 } from 'lucide-react';
+import { supabase } from './supabase';
+import { Auth } from './Auth';
+import { Matchmaking } from './Matchmaking';
+import { User } from './types';
 
 const TIER_COSTS = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
 const XP_COST = 4;
@@ -28,7 +33,156 @@ const App: React.FC = () => {
     const [selectedInBench, setSelectedInBench] = useState<number | null>(null);
     const [selectedInBoard, setSelectedInBoard] = useState<{ x: number, y: number } | null>(null);
     const [isShopOpen, setIsShopOpen] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+    const [sessionLoading, setSessionLoading] = useState(true);
+    const [matchId, setMatchId] = useState<string | null>(null);
+    const [opponent, setOpponent] = useState<{ id: string; username: string; elo: number } | null>(null);
+    const channelRef = useRef<any>(null);
     const combatIntervalRef = useRef<any>(null);
+    const combatRngRef = useRef<any>(null);
+
+    useEffect(() => {
+        if (!matchId) return;
+
+        // Subscribe to match actions
+        channelRef.current = supabase.channel(`match_actions:${matchId}`, {
+            config: {
+                broadcast: { self: false }
+            }
+        });
+
+        channelRef.current
+            .on('broadcast', { event: 'sync_board' }, (payload: any) => {
+                handleOpponentBoardSync(payload.payload.board);
+            })
+            .on('broadcast', { event: 'combat_start' }, (payload: any) => {
+                if (game.phase === 'PLANNING') {
+                    setGame(prev => startCombat(prev, payload.payload.seed));
+                }
+            })
+            .subscribe();
+
+        // Listen for match status changes (victory/defeat)
+        const matchSubscription = supabase
+            .channel(`match_status:${matchId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'matches',
+                    filter: `id=eq.${matchId}`
+                },
+                (payload) => {
+                    const updatedMatch = payload.new;
+                    if (updatedMatch.status === 'finished') {
+                        const isWinner = updatedMatch.winner_id === user?.id;
+                        alert(isWinner ? "VICTORY! Opponent surrendered or health reached zero." : "DEFEAT! Better luck next time.");
+                        setMatchId(null);
+                        setOpponent(null);
+                        // Refresh profile to see new ELO
+                        if (user) fetchUserProfile(user.id);
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            if (channelRef.current) supabase.removeChannel(channelRef.current);
+            supabase.removeChannel(matchSubscription);
+        };
+    }, [matchId, game.phase, user]);
+
+    const broadcastBoard = (board: (CardInstance | null)[][]) => {
+        if (!channelRef.current) return;
+        // Only send rows 2 and 3 (player rows)
+        const playerRows = [board[2], board[3]];
+        channelRef.current.send({
+            type: 'broadcast',
+            event: 'sync_board',
+            payload: { board: playerRows }
+        });
+    };
+
+    const handleOpponentBoardSync = (oppRows: (CardInstance | null)[][]) => {
+        setGame(prev => {
+            const newBoard = prev.board.map(r => [...r]);
+            // Put opponent units in rows 0 and 1
+            // We flip the rows and columns for a mirrored view
+            oppRows.forEach((row, rIdx) => {
+                row.forEach((unit, cIdx) => {
+                    if (unit) {
+                        // Flip coordinates for mirrored perspective
+                        const newX = 6 - cIdx;
+                        const newY = 1 - rIdx;
+                        newBoard[newY][newX] = {
+                            ...unit,
+                            team: 'ENEMY',
+                            position: { x: newX, y: newY }
+                        };
+                    } else {
+                        const newX = 6 - cIdx;
+                        const newY = 1 - rIdx;
+                        newBoard[newY][newX] = null;
+                    }
+                });
+            });
+            return { ...prev, board: newBoard };
+        });
+    };
+
+    useEffect(() => {
+        // Check active session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) fetchUserProfile(session.user.id);
+            else setSessionLoading(false);
+        });
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session) fetchUserProfile(session.user.id);
+            else {
+                setUser(null);
+                setSessionLoading(false);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const fetchUserProfile = async (userId: string) => {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (data) setUser(data);
+        setSessionLoading(false);
+    };
+
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+    };
+
+    const handleMatchFound = (id: string, opp: { id: string; username: string; elo: number }) => {
+        setMatchId(id);
+        setOpponent(opp);
+        // Reset game state for new match
+        setGame({
+            gold: 10,
+            level: 1,
+            xp: 0,
+            shop: generateShop(1),
+            bench: Array(9).fill(null),
+            board: Array(4).fill(null).map(() => Array(7).fill(null)),
+            health: 100,
+            round: 1,
+            phase: 'PLANNING',
+            timer: PHASE_DURATION.PLANNING,
+            graveyard: []
+        });
+    };
 
     // Initialize Shop
     const generateShop = useCallback((level: number) => {
@@ -52,7 +206,15 @@ const App: React.FC = () => {
             setGame((prev: GameState) => {
                 if (prev.timer <= 0) {
                     if (prev.phase === 'PLANNING') {
-                        return startCombat(prev);
+                        const seed = `${matchId}-${prev.round}`;
+                        if (user?.id && matchId && channelRef.current) {
+                            channelRef.current.send({
+                                type: 'broadcast',
+                                event: 'combat_start',
+                                payload: { seed }
+                            });
+                        }
+                        return startCombat(prev, seed);
                     } else {
                         return endCombat(prev);
                     }
@@ -63,7 +225,10 @@ const App: React.FC = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const startCombat = (state: GameState): GameState => {
+    const startCombat = (state: GameState, seed?: string): GameState => {
+        const combatSeed = seed || Math.random().toString();
+        combatRngRef.current = seedrandom(combatSeed);
+
         const newBoard = state.board.map(r => [...r]);
 
         // Generate Enemies (PvE or Random)
@@ -79,7 +244,7 @@ const App: React.FC = () => {
             }
 
             // Shuffle spots
-            validSpots.sort(() => Math.random() - 0.5);
+            validSpots.sort(() => combatRngRef.current() - 0.5);
 
             wave.forEach((monsterId, idx) => {
                 if (idx >= validSpots.length) return; // No space left
@@ -87,7 +252,7 @@ const App: React.FC = () => {
                 if (template) {
                     const spot = validSpots[idx];
                     const monster: CardInstance = {
-                        id: Math.random().toString(),
+                        id: combatRngRef.current().toString(36).substr(2, 9),
                         templateId: template.id,
                         stars: 1,
                         currentHp: template.hp,
@@ -108,13 +273,13 @@ const App: React.FC = () => {
                     if (!newBoard[y][x]) validSpots.push({ x, y });
                 }
             }
-            validSpots.sort(() => Math.random() - 0.5);
+            validSpots.sort(() => combatRngRef.current() - 0.5);
 
             for (let i = 0; i < Math.min(state.level, validSpots.length); i++) {
-                const randTemplate = CARD_TEMPLATES[Math.floor(Math.random() * CARD_TEMPLATES.length)];
+                const randTemplate = CARD_TEMPLATES[Math.floor(combatRngRef.current() * CARD_TEMPLATES.length)];
                 const spot = validSpots[i];
                 newBoard[spot.y][spot.x] = {
-                    id: Math.random().toString(),
+                    id: combatRngRef.current().toString(36).substr(2, 9),
                     templateId: randTemplate.id,
                     stars: 1,
                     currentHp: randTemplate.hp,
@@ -201,34 +366,24 @@ const App: React.FC = () => {
         const newGold = state.gold + 5 + interest;
         const newXp = state.xp + 2;
 
+        // Calculate Damage
+        const enemyUnits = state.board.flat().filter(u => u && u.team === 'ENEMY' && !u.isDead);
+        const playerUnits = state.board.flat().filter(u => u && u.team === 'PLAYER' && !u.isDead);
+
+        let damageTaken = 0;
+        if (enemyUnits.length > 0) {
+            damageTaken = 2 + enemyUnits.length * 2 + Math.floor(state.round / 5);
+        }
+
+        const newHealth = Math.max(0, state.health - damageTaken);
+
         // Reset Board positions
         const newBoard = Array(4).fill(null).map(() => Array(7).fill(null));
 
         state.board.flat().forEach(unit => {
             if (unit && unit.team === 'PLAYER') {
-                // Return to original spot (or current if startPosition missing)
                 const { x, y } = unit.startPosition || unit.position;
-                newBoard[y][x] = {
-                    ...unit,
-                    position: { x, y },
-                    startPosition: { x, y }, // Ensure it's set for next time
-                    currentHp: unit.maxHp,
-                    currentMana: 0,
-                    currentShield: 0,
-                    isStunned: false,
-                    isDead: false
-                };
-            }
-            // Remove Enemy units (they don't persist)
-        });
-
-        // Restore from Graveyard
-        state.graveyard?.forEach(unit => {
-            if (unit && unit.team === 'PLAYER') {
-                const { x, y } = unit.startPosition || unit.position;
-                // If spot is taken by another revived unit (rare/edge case), try to find empty? 
-                // In TFT logic, they should just fit or overflow to bench. For now, force overwrite or fill empty.
-                if (!newBoard[y][x]) {
+                if (x >= 0 && x < 7 && y >= 0 && y < 4) {
                     newBoard[y][x] = {
                         ...unit,
                         position: { x, y },
@@ -239,10 +394,15 @@ const App: React.FC = () => {
                         isStunned: false,
                         isDead: false
                     };
-                } else {
-                    // Spot taken! Try to find nearest empty or dump to bench?
-                    // Simple fix: dump to first empty bench if possible, or just overwrite (last revived wins).
-                    // Better: overwrite board because startPosition is strong intent.
+                }
+            }
+        });
+
+        // Restore from Graveyard
+        state.graveyard?.forEach(unit => {
+            if (unit && unit.team === 'PLAYER') {
+                const { x, y } = unit.startPosition || unit.position;
+                if (x >= 0 && x < 7 && y >= 0 && y < 4) {
                     newBoard[y][x] = {
                         ...unit,
                         position: { x, y },
@@ -269,6 +429,15 @@ const App: React.FC = () => {
             finalLevel += 1;
         }
 
+        // Check Match Conclusion
+        if (newHealth <= 0 && matchId && user) {
+            handleMatchEnd(false); // Player lost
+        } else if (opponent && enemyUnits.length === 0 && playerUnits.length > 0) {
+            // Player won this round, check if opponent lost?
+            // In a real 1v1, damage to opponent is handled by opponent's client.
+            // But we can check if round is very high or other conditions.
+        }
+
         return {
             ...state,
             phase: 'PLANNING',
@@ -277,10 +446,33 @@ const App: React.FC = () => {
             gold: Math.min(newGold, 100),
             xp: finalXp,
             level: finalLevel,
+            health: newHealth,
             board: mergedBoard,
             bench: mergedBench,
             shop: generateShop(finalLevel)
         };
+    };
+
+    const handleMatchEnd = async (isWinner: boolean) => {
+        if (!matchId || !user || !opponent) return;
+
+        // Update match status
+        const { error } = await supabase
+            .from('matches')
+            .update({
+                status: 'finished',
+                winner_id: isWinner ? user.id : opponent.id
+            })
+            .eq('id', matchId);
+
+        if (!error) {
+            // Match finished successfully
+            // The trigger in Supabase will update ELO
+            alert(isWinner ? "VICTORY! Match Finished." : "DEFEAT! Match Finished.");
+            // Reset match state to go back to lobby
+            setMatchId(null);
+            setOpponent(null);
+        }
     };
 
     // Combat Tick Logic
@@ -329,7 +521,8 @@ const App: React.FC = () => {
                                     unit,
                                     board: newBoard, // We pass the mutable board
                                     units: units,
-                                    setGame: setGame // Pass setGame just in case (though we modify mutably here mostly)
+                                    setGame: setGame,
+                                    rng: () => (combatRngRef.current ? combatRngRef.current() : Math.random())
                                 });
                             }
                             return unit;
@@ -421,13 +614,15 @@ const App: React.FC = () => {
 
             const { bench: finalBench, board: finalBoard } = checkMerges(tempBench, prev.board);
 
-            return {
+            const result = {
                 ...prev,
                 gold: prev.gold - TIER_COSTS[card.tier as keyof typeof TIER_COSTS],
                 shop: newShop,
                 bench: finalBench,
                 board: finalBoard
             };
+            broadcastBoard(finalBoard);
+            return result;
         });
     };
 
@@ -527,7 +722,9 @@ const App: React.FC = () => {
                     return { ...prev, gold: prev.gold + Math.max(1, refund), board: newBoard };
                 }
             }
-            return prev;
+            const result = prev;
+            broadcastBoard(prev.board); // Still broadcast just in case, though ideally only on change
+            return result;
         });
         setSelectedInBench(null);
         setSelectedInBoard(null);
@@ -553,34 +750,37 @@ const App: React.FC = () => {
                 const currentUnits = newBoard.flat().filter(u => u && u.team === 'PLAYER').length;
                 if (!existingInSlot && currentUnits >= prev.level) return prev; // Cap reached
 
-                newBoard[row][col] = { ...card, position: { x: col, y: row }, startPosition: { x: col, y: row }, benchIndex: undefined };
+                const card = newBench[selectedInBench];
+                if (!card) return prev;
+
+                const nextUnit = { ...card, position: { x: col, y: row }, startPosition: { x: col, y: row }, benchIndex: undefined };
+                newBoard[row][col] = nextUnit;
                 newBench[selectedInBench] = existingInSlot ? { ...existingInSlot, benchIndex: selectedInBench, position: { x: -1, y: -1 } } : null;
 
+                broadcastBoard(newBoard);
                 return { ...prev, board: newBoard, bench: newBench };
             });
             setSelectedInBench(null);
             return;
         }
 
-        // CASE 2: Board -> Board (Move)
+        // Move Board Unit
         if (selectedInBoard) {
-            // We are placing the selected board unit to (row, col)
-            setGame((prev: GameState) => {
+            setGame(prev => {
                 const newBoard = prev.board.map(r => [...r]);
                 const sourceUnit = newBoard[selectedInBoard.y][selectedInBoard.x];
                 if (!sourceUnit) return prev;
+
                 const targetUnit = newBoard[row][col];
+                if (targetUnit && targetUnit.team === 'ENEMY') return prev; // Cannot swap with enemy
 
-                if (targetUnit && targetUnit.team === 'ENEMY') return prev;
-
-                // Move
                 newBoard[selectedInBoard.y][selectedInBoard.x] = targetUnit ? { ...targetUnit, position: { x: selectedInBoard.x, y: selectedInBoard.y }, startPosition: { x: selectedInBoard.x, y: selectedInBoard.y } } : null;
                 newBoard[row][col] = { ...sourceUnit, position: { x: col, y: row }, startPosition: { x: col, y: row } }; // Update startPosition!
 
+                broadcastBoard(newBoard);
                 return { ...prev, board: newBoard };
             });
             setSelectedInBoard(null);
-            return;
         }
 
         // CASE 3: Select Board Unit
@@ -588,6 +788,25 @@ const App: React.FC = () => {
         if (clickedUnit && clickedUnit.team === 'PLAYER') {
             setSelectedInBoard({ x: col, y: row });
         }
+    };
+
+    const recallToBench = (x: number, y: number) => {
+        setGame(prev => {
+            const firstEmpty = prev.bench.indexOf(null);
+            if (firstEmpty === -1) return prev;
+
+            const newBoard = prev.board.map(r => [...r]);
+            const unit = newBoard[y][x];
+            if (!unit) return prev;
+
+            const newBench = [...prev.bench];
+            newBench[firstEmpty] = { ...unit, position: { x: -1, y: -1 }, benchIndex: firstEmpty };
+            newBoard[y][x] = null;
+
+            broadcastBoard(newBoard);
+            return { ...prev, board: newBoard, bench: newBench };
+        });
+        setSelectedInBoard(null);
     };
 
     const rerollShop = () => {
@@ -663,6 +882,45 @@ const App: React.FC = () => {
         }
     };
 
+    if (sessionLoading) {
+        return (
+            <div className="h-screen bg-[#0a0a0c] flex items-center justify-center">
+                <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (!user) {
+        return <Auth onAuthComplete={() => { }} />;
+    }
+
+    if (!matchId) {
+        return (
+            <div className="h-screen bg-[#0a0a0c] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                {/* Header for Lobby */}
+                <div className="absolute top-8 left-8 right-8 flex justify-between items-center z-20">
+                    <div className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-xl">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center font-bold text-sm">
+                            {user.username[0].toUpperCase()}
+                        </div>
+                        <div className="flex flex-col leading-none">
+                            <span className="text-sm font-bold text-white">{user.username}</span>
+                            <span className="text-[10px] text-purple-300 font-black uppercase tracking-wider">{user.elo} ELO</span>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleSignOut}
+                        className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-rose-500/10 hover:border-rose-500/20 text-slate-400 hover:text-rose-500 transition-all flex items-center gap-2 font-bold text-sm"
+                    >
+                        <LogOut size={18} /> LOGOUT
+                    </button>
+                </div>
+
+                <Matchmaking user={user} onMatchFound={handleMatchFound} />
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col h-screen bg-[#0a0a0c] text-white p-4 font-['Outfit'] overflow-hidden relative selection:bg-purple-500/30">
             {/* Background Ambience */}
@@ -677,6 +935,19 @@ const App: React.FC = () => {
                     style={{ width: `${(game.timer / (game.phase === 'PLANNING' ? PHASE_DURATION.PLANNING : PHASE_DURATION.COMBAT)) * 100}%` }} />
 
                 <div className="flex items-center gap-6">
+                    {/* User Profile */}
+                    <div className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-xl">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center font-bold text-sm">
+                            {user.username[0].toUpperCase()}
+                        </div>
+                        <div className="flex flex-col leading-none">
+                            <span className="text-sm font-bold text-white">{user.username}</span>
+                            <span className="text-[10px] text-purple-300 font-black uppercase tracking-wider">{user.elo} ELO</span>
+                        </div>
+                    </div>
+
+                    <div className="w-px h-8 bg-white/5" />
+
                     <div className="flex items-center gap-2 text-amber-400 bg-amber-400/10 px-3 py-1.5 rounded-lg border border-amber-400/20">
                         <Coins size={18} />
                         <span className="text-xl font-bold">{game.gold}</span>
@@ -727,6 +998,13 @@ const App: React.FC = () => {
                     <div className="text-[10px] text-slate-500 font-bold px-3 py-1 bg-white/5 rounded-lg border border-white/5">
                         ROUND {game.round}
                     </div>
+                    <button
+                        onClick={handleSignOut}
+                        className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-rose-500/10 hover:border-rose-500/20 text-slate-400 hover:text-rose-500 transition-all"
+                        title="Sair"
+                    >
+                        <LogOut size={18} />
+                    </button>
                 </div>
             </div>
 

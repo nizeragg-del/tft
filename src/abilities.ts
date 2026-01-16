@@ -5,6 +5,7 @@ type AbilityContext = {
     board: (CardInstance | null)[][];
     units: CardInstance[];
     setGame: React.Dispatch<React.SetStateAction<GameState>>;
+    rng: () => number;
 };
 
 export const ABILITIES: Record<string, (ctx: AbilityContext) => void> = {
@@ -35,10 +36,10 @@ export const ABILITIES: Record<string, (ctx: AbilityContext) => void> = {
             lowest.currentHp = Math.min(lowest.maxHp, lowest.currentHp + 200 * unit.stars);
         }
     },
-    'Drone': ({ unit, units }) => {
+    'Drone': ({ unit, units, rng }) => {
         const enemies = units.filter(u => u.team !== unit.team && !u.isDead);
         for (let i = 0; i < Math.min(2, enemies.length); i++) {
-            const target = enemies[Math.floor(Math.random() * enemies.length)];
+            const target = enemies[Math.floor(rng() * enemies.length)];
             target.currentHp -= 80 * unit.stars;
             if (target.currentHp <= 0) target.isDead = true;
         }
@@ -73,10 +74,10 @@ export const ABILITIES: Record<string, (ctx: AbilityContext) => void> = {
     'Sentinel': ({ unit }) => {
         unit.currentShield = (unit.currentShield || 0) + 300 * unit.stars;
     },
-    'Blaster': ({ unit, units }) => {
+    'Blaster': ({ unit, units, rng }) => {
         const enemies = units.filter(u => u.team !== unit.team && !u.isDead);
         for (let i = 0; i < Math.min(3, enemies.length); i++) {
-            const target = enemies[Math.floor(Math.random() * enemies.length)];
+            const target = enemies[Math.floor(rng() * enemies.length)];
             target.currentHp -= 100 * unit.stars;
             if (target.currentHp <= 0) target.isDead = true;
         }
