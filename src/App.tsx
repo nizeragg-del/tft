@@ -1287,44 +1287,52 @@ const App: React.FC = () => {
                                             </div>
                                         )}
 
-                                        {/* Status Bars (Fixed & Compact) */}
-                                        <div className="absolute -bottom-2 w-10 flex flex-col gap-0.5 z-10 pointer-events-none">
-                                            <div className="w-full h-1 bg-black/60 rounded-full overflow-hidden border border-black/20">
-                                                <div className={`h-full ${cell.team === 'PLAYER' ? 'bg-emerald-400' : 'bg-rose-500'}`} style={{ width: `${(cell.currentHp / cell.maxHp) * 100}%` }} />
-                                            </div>
-                                            <div className="w-full h-1 bg-black/60 rounded-full overflow-hidden border border-black/20">
-                                                <div className="h-full bg-blue-400" style={{ width: `${cell.currentMana}%` }} />
-                                            </div>
-                                        </div>
-
-                                        {/* Unit Visual */}
-                                        <div className={`w-12 h-16 rounded-xl flex items-center justify-center text-lg shadow-xl relative overflow-hidden
+                                        {/* Unit Visual & Name Overlay */}
+                                        <div className={`w-12 h-16 rounded-lg flex flex-col items-center justify-center text-lg shadow-xl relative overflow-hidden border-2
                                             ${cell.team === 'PLAYER'
-                                                ? 'bg-gradient-to-br from-indigo-600/80 to-purple-900/90 ring-1 ring-purple-500/50'
-                                                : 'bg-gradient-to-br from-rose-800 to-red-950 ring-1 ring-rose-500/50 grayscale-[0.2]'}`}
+                                                ? 'bg-gradient-to-br from-indigo-900/90 to-purple-900 border-white ring-1 ring-purple-500/30'
+                                                : 'bg-gradient-to-br from-rose-900 to-red-950 border-rose-500/40 grayscale-[0.2]'}`}
                                         >
-                                            {/* Stars */}
-                                            {cell.stars > 1 && (
-                                                <div className="absolute -top-1 flex gap-0.5">
-                                                    {Array(cell.stars).fill(0).map((_, i) => (
-                                                        <span key={i} className="text-[8px]">⭐</span>
-                                                    ))}
-                                                </div>
-                                            )}
                                             <UnitArt
                                                 name={(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name || '?'}
+                                                className="opacity-90"
                                             />
 
                                             {/* Stun Indicator */}
                                             {cell.isStunned && <div className="absolute inset-0 bg-yellow-400/50 animate-pulse flex items-center justify-center">💫</div>}
 
                                             {/* Shield */}
-                                            {(cell.currentShield || 0) > 0 && <div className="absolute inset-0 border-2 border-slate-300 rounded-xl opacity-50 animate-pulse" />}
+                                            {(cell.currentShield || 0) > 0 && <div className="absolute inset-0 border-2 border-slate-300 rounded-lg opacity-50 animate-pulse" />}
+
+                                            {/* Name Overlay (Mockup Style) */}
+                                            <div className="absolute bottom-0 left-0 right-0 bg-black/60 py-0.5 px-0.5 flex justify-center">
+                                                <span className={`text-[7px] font-black uppercase truncate max-w-full ${cell.team === 'PLAYER' ? 'text-white' : 'text-rose-200'}`}>
+                                                    {(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name}
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <span className={`text-[9px] font-bold uppercase mt-1 truncate max-w-full ${cell.team === 'PLAYER' ? 'text-purple-200' : 'text-rose-300'}`}>
-                                            {(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name}
-                                        </span>
+                                        {/* Footer: Status Bars + Stars */}
+                                        <div className="flex items-center gap-1.5 mt-1 w-full justify-center">
+                                            {/* Bars */}
+                                            <div className="flex flex-col gap-0.5 w-[32px]">
+                                                <div className="w-full h-1 bg-black/60 rounded-full overflow-hidden border border-black/20">
+                                                    <div className={`h-full ${cell.team === 'PLAYER' ? 'bg-emerald-400' : 'bg-rose-500'}`} style={{ width: `${(cell.currentHp / cell.maxHp) * 100}%` }} />
+                                                </div>
+                                                <div className="w-full h-1 bg-black/60 rounded-full overflow-hidden border border-black/20">
+                                                    <div className="h-full bg-blue-400" style={{ width: `${cell.currentMana}%` }} />
+                                                </div>
+                                            </div>
+
+                                            {/* Stars (Next to bars) */}
+                                            {cell.stars > 1 && (
+                                                <div className="flex gap-0.5">
+                                                    {Array(cell.stars).fill(0).map((_, i) => (
+                                                        <div key={i} className="w-1.5 h-1.5 rotate-45 bg-yellow-400 shadow-[0_0_3px_rgba(251,191,36,0.8)]" />
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </div>
