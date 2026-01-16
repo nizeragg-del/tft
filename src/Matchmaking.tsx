@@ -16,8 +16,11 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
     const [partyId, setPartyId] = useState<string | null>(null);
     const [onlineCount, setOnlineCount] = useState(1);
     const [friends, setFriends] = useState<any[]>([]);
+    const [pendingInvites, setPendingInvites] = useState<any[]>([]);
     const [searchNickname, setSearchNickname] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
     const [socialLoading, setSocialLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<'friends' | 'invites'>('friends');
 
     useEffect(() => {
         // 1. Setup Presence for Online Count
@@ -45,8 +48,16 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
         // 2. Initial Fetch of Friends
         fetchFriends();
 
+        // 3. Realtime subscription for friend updates
+        const friendsChannel = supabase.channel(`friends:${user.id}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'friends' }, () => {
+                fetchFriends();
+            })
+            .subscribe();
+
         return () => {
             supabase.removeChannel(lobbyChannel);
+            supabase.removeChannel(friendsChannel);
         };
     }, [user]);
 
@@ -100,64 +111,104 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
     }, [partyId, searching]);
 
     const fetchFriends = async () => {
-        const { data } = await supabase
+        // Fetch Accepted Friends
+        const { data: accepted } = await supabase
             .from('friends')
             .select(`
-                friend:users!friends_friend_id_fkey(*)
+                id,
+                status,
+                user_id,
+                friend_id,
+                friend:users!friends_friend_id_fkey(*),
+                user:users!friends_user_id_fkey(*)
             `)
-            .eq('user_id', user.id);
+            .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
+            .eq('status', 'accepted');
 
-        if (data) {
-            setFriends(data.map(f => f.friend));
+        if (accepted) {
+            const mappedFriends = accepted.map((f: any) => {
+                return f.user_id === user.id ? f.friend : f.user;
+            });
+            setFriends(mappedFriends);
+        }
+
+        // Fetch Pending Invites (Received by me)
+        const { data: pending } = await supabase
+            .from('friends')
+            .select(`
+                id,
+                user:users!friends_user_id_fkey(*)
+            `)
+            .eq('friend_id', user.id)
+            .eq('status', 'pending');
+
+        if (pending) {
+            setPendingInvites(pending.map((p: any) => ({ ...p.user, requestId: p.id })));
         }
     };
 
-    const addFriend = async () => {
-        if (!searchNickname.trim()) return;
-        setSocialLoading(true);
+    const searchUsers = async (query: string) => {
+        setSearchNickname(query);
+        if (query.length < 2) {
+            setSearchResults([]);
+            return;
+        }
 
-        const { data: targetUser, error: userError } = await supabase
+        const { data } = await supabase
             .from('users')
             .select('*')
-            .eq('username', searchNickname)
-            .single();
+            .ilike('username', `${query}%`)
+            .neq('id', user.id)
+            .limit(5);
 
-        if (userError || !targetUser) {
-            alert('User not found');
-            setSocialLoading(false);
-            return;
-        }
+        if (data) setSearchResults(data);
+    };
 
-        if (targetUser.id === user.id) {
-            alert('You cannot add yourself');
-            setSocialLoading(false);
-            return;
-        }
-
+    const addFriend = async (targetId: string) => {
+        setSocialLoading(true);
         const { error: friendError } = await supabase
             .from('friends')
             .insert([{
                 user_id: user.id,
-                friend_id: targetUser.id,
-                status: 'accepted'
+                friend_id: targetId,
+                status: 'pending'
             }]);
 
         if (friendError) {
-            if (friendError.code === '23505') alert('Already friends');
-            else alert('Error adding friend');
+            if (friendError.code === '23505') alert('Request already sent or already friends');
+            else alert('Error sending request');
         } else {
             setSearchNickname('');
-            fetchFriends();
+            setSearchResults([]);
+            alert('Convite enviado!');
         }
         setSocialLoading(false);
+    };
+
+    const acceptFriend = async (requestId: string) => {
+        const { error } = await supabase
+            .from('friends')
+            .update({ status: 'accepted' })
+            .eq('id', requestId);
+
+        if (!error) fetchFriends();
+        else alert('Error accepting friend');
+    };
+
+    const declineFriend = async (requestId: string) => {
+        const { error } = await supabase
+            .from('friends')
+            .delete()
+            .eq('id', requestId);
+
+        if (!error) fetchFriends();
     };
 
     const removeFriend = async (friendId: string) => {
         const { error } = await supabase
             .from('friends')
             .delete()
-            .eq('user_id', user.id)
-            .eq('friend_id', friendId);
+            .or(`and(user_id.eq.${user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${user.id})`);
 
         if (!error) fetchFriends();
     };
@@ -351,60 +402,131 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
                         <h3 className="text-lg font-bold text-white uppercase tracking-tight">Nexus Friends</h3>
                     </div>
 
-                    <div className="relative mb-6">
-                        <input
-                            type="text"
-                            placeholder="Add by nickname..."
-                            value={searchNickname}
-                            onChange={(e) => setSearchNickname(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-medium"
-                            onKeyDown={(e) => e.key === 'Enter' && addFriend()}
-                        />
+                    <div className="flex gap-2 mb-6 p-1 bg-black/20 rounded-xl">
                         <button
-                            onClick={addFriend}
-                            disabled={socialLoading}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-purple-400 hover:text-white transition-colors"
+                            onClick={() => setActiveTab('friends')}
+                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${activeTab === 'friends' ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
-                            {socialLoading ? <Loader2 size={18} className="animate-spin" /> : <UserPlus size={18} />}
+                            Amigos ({friends.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('invites')}
+                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all relative ${activeTab === 'invites' ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20' : 'text-slate-500 hover:text-slate-300'}`}
+                        >
+                            Convites
+                            {pendingInvites.length > 0 && (
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[8px] flex items-center justify-center rounded-full animate-bounce">
+                                    {pendingInvites.length}
+                                </span>
+                            )}
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10">
-                        {friends.length === 0 ? (
-                            <div className="text-center py-6">
-                                <Users size={24} className="text-slate-700 mx-auto mb-3 opacity-20" />
-                                <p className="text-slate-600 text-xs font-medium">No friends yet.</p>
-                            </div>
-                        ) : (
-                            friends.map((friend) => (
-                                <div key={friend.id} className="group flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl flex items-center justify-center font-bold text-slate-400 uppercase">
-                                        {friend.username[0]}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-bold text-white truncate">{friend.username}</div>
-                                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{friend.elo} ELO</div>
-                                    </div>
-                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {partyId && (
-                                            <button
-                                                onClick={() => inviteFriend(friend.id)}
-                                                className="p-2 text-blue-400 hover:text-blue-300 transition-colors"
-                                                title="Invite to Party"
-                                            >
-                                                <Mail size={16} />
-                                            </button>
-                                        )}
+                    <div className="relative mb-6">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                            <Search size={16} />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search players..."
+                            value={searchNickname}
+                            onChange={(e) => searchUsers(e.target.value)}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-medium"
+                        />
+                        {searchResults.length > 0 && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a20] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                {searchResults.map((u) => (
+                                    <div key={u.id} className="flex items-center justify-between p-3 hover:bg-white/5 border-b border-white/5 last:border-0">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400">
+                                                {u.username[0]}
+                                            </div>
+                                            <span className="text-sm font-bold text-white">{u.username}</span>
+                                        </div>
                                         <button
-                                            onClick={() => removeFriend(friend.id)}
-                                            className="p-2 text-slate-600 hover:text-rose-500 transition-colors"
-                                            title="Remove Friend"
+                                            onClick={() => addFriend(u.id)}
+                                            className="p-2 text-purple-400 hover:bg-purple-500/10 rounded-lg transition-all"
+                                            title="Add Friend"
                                         >
-                                            <Trash2 size={16} />
+                                            <UserPlus size={18} />
                                         </button>
                                     </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                        {activeTab === 'friends' ? (
+                            friends.length === 0 ? (
+                                <div className="text-center py-6">
+                                    <Users size={24} className="text-slate-700 mx-auto mb-3 opacity-20" />
+                                    <p className="text-slate-600 text-xs font-medium">No friends yet.</p>
                                 </div>
-                            ))
+                            ) : (
+                                friends.map((friend) => (
+                                    <div key={friend.id} className="group flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all">
+                                        <div className="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl flex items-center justify-center font-bold text-slate-400 uppercase">
+                                            {friend.username[0]}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-bold text-white truncate">{friend.username}</div>
+                                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{friend.elo} ELO</div>
+                                        </div>
+                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => inviteFriend(friend.id)}
+                                                className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors border border-transparent hover:border-emerald-500/20"
+                                                title="Chammar para Lobby"
+                                            >
+                                                <Zap size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => removeFriend(friend.id)}
+                                                className="p-2 text-slate-600 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                                title="Excluir Amigo"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            )
+                        ) : (
+                            pendingInvites.length === 0 ? (
+                                <div className="text-center py-6">
+                                    <Mail size={24} className="text-slate-700 mx-auto mb-3 opacity-20" />
+                                    <p className="text-slate-600 text-xs font-medium">Nenhum convite pendente.</p>
+                                </div>
+                            ) : (
+                                pendingInvites.map((requester) => (
+                                    <div key={requester.id} className="flex items-center gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-2xl">
+                                        <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center font-bold text-indigo-400 uppercase">
+                                            {requester.username[0]}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-xs font-bold text-white truncate">{requester.username}</div>
+                                            <div className="text-[9px] text-indigo-400/60 font-black uppercase tracking-widest">Quer ser seu amigo</div>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <button
+                                                onClick={() => acceptFriend(requester.requestId)}
+                                                className="p-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all"
+                                                title="Aceitar"
+                                            >
+                                                <Users size={14} />
+                                            </button>
+                                            <button
+                                                onClick={() => declineFriend(requester.requestId)}
+                                                className="p-2 bg-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg transition-all"
+                                                title="Recusar"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            )
                         )}
                     </div>
                 </div>
