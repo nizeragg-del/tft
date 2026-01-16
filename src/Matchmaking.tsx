@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import { User } from './types';
-import { Swords, Search, Loader2, X, Trophy, Users, UserPlus, Trash2, Circle, Mail } from 'lucide-react';
+import { Swords, Search, Loader2, X, Trophy, Users, UserPlus, Trash2, Circle, Mail, Zap } from 'lucide-react';
 import { PartyLobby } from './PartyLobby';
 
 interface MatchmakingProps {
@@ -11,6 +11,7 @@ interface MatchmakingProps {
 
 export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) => {
     const [searching, setSearching] = useState(false);
+    const [searchTime, setSearchTime] = useState(0);
     const [matchId, setMatchId] = useState<string | null>(null);
     const [partyId, setPartyId] = useState<string | null>(null);
     const [onlineCount, setOnlineCount] = useState(1);
@@ -49,6 +50,29 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
         };
     }, [user]);
 
+    // Search Timer and Timeout
+    useEffect(() => {
+        let interval: any;
+        if (searching) {
+            setSearchTime(0);
+            interval = setInterval(() => {
+                setSearchTime(prev => {
+                    if (prev >= 300) { // 5 minutes
+                        clearInterval(interval);
+                        stopPartySearch();
+                        alert('Matchmaking timeout. Please try again.');
+                        return 0;
+                    }
+                    return prev + 1;
+                });
+            }, 1000);
+        } else {
+            setSearchTime(0);
+            clearInterval(interval);
+        }
+        return () => clearInterval(interval);
+    }, [searching]);
+
     // Handle party-wide matchmaking signals
     useEffect(() => {
         if (!partyId) return;
@@ -59,6 +83,8 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
                     if (payload.payload.match_id) {
                         // Leader already created a match, join it
                         joinExistingMatch(payload.payload.match_id);
+                    } else if (payload.payload.is_bot) {
+                        startBotMatch();
                     } else {
                         // For solo or if leader didn't provide ID (legacy)
                         findMatch();
@@ -271,6 +297,31 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
         cancelSearch();
     };
 
+    const startBotMatch = () => {
+        if (partyId && !user.id) return; // Basic check
+
+        if (partyId) {
+            // Signal party
+            supabase.channel(`party:${partyId}`).send({
+                type: 'broadcast',
+                event: 'start_searching',
+                payload: { is_bot: true }
+            });
+        }
+
+        onMatchFound('bot-match', {
+            id: 'bot-id',
+            username: 'Nexus AI (Practice)',
+            elo: 0
+        });
+    };
+
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
+
     return (
         <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center h-full p-4 lg:p-8 gap-8 overflow-y-auto">
             {/* Social / Friends Side Panel */}
@@ -403,13 +454,22 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
                             </div>
                         </div>
 
-                        <button
-                            onClick={startPartySearch}
-                            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-purple-500/20 transition-all active:scale-95 flex items-center justify-center gap-3 group text-lg"
-                        >
-                            {partyId ? 'START PARTY QUEUE' : 'FIND MATCH'}
-                            <Search size={20} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
+                        <div className="grid grid-cols-1 gap-4">
+                            <button
+                                onClick={startPartySearch}
+                                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-purple-500/20 transition-all active:scale-95 flex items-center justify-center gap-3 group text-lg"
+                            >
+                                {partyId ? 'START PARTY QUEUE' : 'FIND MATCH'}
+                                <Search size={20} className="group-hover:translate-x-1 transition-transform" />
+                            </button>
+                            <button
+                                onClick={startBotMatch}
+                                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold py-3 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm"
+                            >
+                                <Zap size={16} className="text-amber-400" />
+                                PRACTICE VS AI
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-8 animate-in fade-in duration-300 w-full">
@@ -424,6 +484,7 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
                             <h3 className="text-2xl font-black text-white uppercase tracking-wider animate-pulse">
                                 Searching <span className="text-purple-500">Opponent...</span>
                             </h3>
+                            <div className="text-xl font-mono text-white/50 mt-2">{formatTime(searchTime)}</div>
                             <p className="text-slate-500 mt-2 font-medium">Matching Commanders with similar skill level</p>
                         </div>
 

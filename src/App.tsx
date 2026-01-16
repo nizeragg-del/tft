@@ -37,6 +37,14 @@ const App: React.FC = () => {
     const [sessionLoading, setSessionLoading] = useState(true);
     const [matchId, setMatchId] = useState<string | null>(null);
     const [opponent, setOpponent] = useState<{ id: string; username: string; elo: number; health?: number } | null>(null);
+    const [botState, setBotState] = useState<{
+        gold: number;
+        level: number;
+        xp: number;
+        health: number;
+        board: (CardInstance | null)[][];
+        bench: (CardInstance | null)[];
+    } | null>(null);
     const channelRef = useRef<any>(null);
     const combatIntervalRef = useRef<any>(null);
     const combatRngRef = useRef<any>(null);
@@ -153,6 +161,14 @@ const App: React.FC = () => {
         return () => subscription.unsubscribe();
     }, []);
 
+    useEffect(() => {
+        if (game.health <= 0) {
+            handleMatchEnd(false);
+        } else if (opponent?.id === 'bot-id' && opponent.health !== undefined && opponent.health <= 0) {
+            handleMatchEnd(true);
+        }
+    }, [game.health, opponent?.health]);
+
     const fetchUserProfile = async (userId: string) => {
         const { data, error } = await supabase
             .from('users')
@@ -170,7 +186,19 @@ const App: React.FC = () => {
 
     const handleMatchFound = (id: string, opp: { id: string; username: string; elo: number }) => {
         setMatchId(id);
-        setOpponent({ ...opp, health: 100 });
+        if (opp.id === 'bot-id') {
+            setBotState({
+                gold: 10,
+                level: 1,
+                xp: 0,
+                health: 100,
+                board: Array(2).fill(null).map(() => Array(7).fill(null)),
+                bench: Array(9).fill(null)
+            });
+        } else {
+            setBotState(null);
+        }
+
         // Reset game state for new match
         setGame({
             gold: 10,
@@ -209,7 +237,7 @@ const App: React.FC = () => {
             setGame((prev: GameState) => {
                 if (prev.timer <= 0) {
                     if (prev.phase === 'PLANNING') {
-                        const seed = `${matchId}-${prev.round}`;
+                        const seed = `${matchId || 'bot'}-${prev.round}`;
                         if (user?.id && matchId && channelRef.current) {
                             channelRef.current.send({
                                 type: 'broadcast',
@@ -219,14 +247,19 @@ const App: React.FC = () => {
                         }
                         return startCombat(prev, seed);
                     } else {
-                        return endCombat(prev);
+                        const nextState = endCombat(prev);
+                        if (opponent?.id === 'bot-id') {
+                            // After combat ends, bot prepares for next round
+                            // This will be called via useEffect on round change
+                        }
+                        return nextState;
                     }
                 }
                 return { ...prev, timer: prev.timer - 1 };
             });
         }, 1000);
         return () => clearInterval(timer);
-    }, []);
+    }, [matchId, opponent]);
 
     const startCombat = (state: GameState, seed?: string): GameState => {
         const combatSeed = seed || Math.random().toString();
@@ -430,12 +463,9 @@ const App: React.FC = () => {
         }
 
         // Check Match Conclusion
-        if (newHealth <= 0 && matchId && user) {
-            handleMatchEnd(false); // Player lost
-        } else if (opponent && enemyUnits.length === 0 && playerUnits.length > 0) {
-            // Player won this round, check if opponent lost?
-            // In a real 1v1, damage to opponent is handled by opponent's client.
-            // But we can check if round is very high or other conditions.
+        if (opponent?.id === 'bot-id' && enemyUnits.length === 0 && playerUnits.length > 0) {
+            const botDamage = 2 + playerUnits.length * 2 + Math.floor(state.round / 5);
+            setOpponent(prev => prev ? { ...prev, health: Math.max(0, (prev.health ?? 100) - botDamage) } : null);
         }
 
         // Broadcast health to opponent
@@ -462,11 +492,153 @@ const App: React.FC = () => {
         };
     };
 
-    const handleMatchEnd = async (isWinner: boolean) => {
-        if (!matchId || !user || !opponent) return;
+    // Bot Strategic Turn Logic
+    useEffect(() => {
+        if (opponent?.id === 'bot-id' && game.phase === 'PLANNING' && game.timer === PHASE_DURATION.PLANNING) {
+            runBotTurn();
+        }
+    }, [game.round, game.phase]);
 
-        // Update match status
-        const { error } = await supabase
+    const runBotTurn = () => {
+        setBotState(prev => {
+            if (!prev) return null;
+
+            let { gold, level, xp, board, bench } = { ...prev };
+
+            // 1. Income
+            const interest = Math.min(5, Math.floor(gold / 10));
+            gold += 5 + interest;
+            xp += 2;
+
+            // 2. Buy XP if rich or close to level up
+            while (gold >= 4 && level < 9 && (xp + 4 >= level * 4 || gold > 30)) {
+                gold -= 4;
+                xp += 4;
+                if (xp >= level * 4) {
+                    xp -= level * 4;
+                    level++;
+                }
+            }
+
+            // 3. Buy & Merge Units (Simulated Shop)
+            // Bot buys 3 units each round fitting its level
+            for (let i = 0; i < 3; i++) {
+                if (gold < 4) break;
+                const pool = CARD_TEMPLATES.filter(t => t.tier <= Math.ceil(level / 2));
+                const template = pool[Math.floor(Math.random() * pool.length)];
+
+                // Simplified merge: if it has 2 of the same, make 2-star, else add to bench
+                const existingIndex = bench.findIndex(u => u?.templateId === template.id && u.stars === 1);
+                const existingIndex2 = bench.findIndex((u, idx) => u?.templateId === template.id && u.stars === 1 && idx !== existingIndex);
+
+                if (existingIndex !== -1 && existingIndex2 !== -1) {
+                    // Triple! Clear bench and add 2-star to bench (next turn will place it)
+                    bench[existingIndex] = null;
+                    bench[existingIndex2] = null;
+                    const emptySpot = bench.indexOf(null);
+                    if (emptySpot !== -1) {
+                        bench[emptySpot] = {
+                            id: Math.random().toString(36).substr(2, 9),
+                            templateId: template.id,
+                            stars: 2,
+                            currentHp: template.hp * 1.8,
+                            maxHp: template.hp * 1.8,
+                            currentMana: 0,
+                            team: 'ENEMY',
+                            position: { x: -1, y: -1 }
+                        };
+                    }
+                    gold -= TIER_COSTS[template.tier as keyof typeof TIER_COSTS];
+                } else {
+                    const emptySpot = bench.indexOf(null);
+                    if (emptySpot !== -1) {
+                        bench[emptySpot] = {
+                            id: Math.random().toString(36).substr(2, 9),
+                            templateId: template.id,
+                            stars: 1,
+                            currentHp: template.hp,
+                            maxHp: template.hp,
+                            currentMana: 0,
+                            team: 'ENEMY',
+                            position: { x: -1, y: -1 }
+                        };
+                        gold -= TIER_COSTS[template.tier as keyof typeof TIER_COSTS];
+                    }
+                }
+            }
+
+            // 4. Strategic Positioning
+            // Clear current board and place from bench up to level
+            const newBoard: (CardInstance | null)[][] = Array(2).fill(null).map(() => Array(7).fill(null));
+            const allBotUnits = [...bench.filter(Boolean), ...board.flat().filter(Boolean)] as CardInstance[];
+            // Sort: highest stars first
+            allBotUnits.sort((a, b) => b.stars - a.stars);
+
+            const toPlace = allBotUnits.slice(0, level);
+
+            toPlace.forEach(unit => {
+                const template = CARD_TEMPLATES.find(t => t.id === unit.templateId);
+                const isTank = template?.traits.some(t => ['Protector', 'Brawler'].includes(t));
+
+                let placed = false;
+                // Tank -> Front row (Row 1 for Bot)
+                if (isTank) {
+                    for (let x = 0; x < 7; x++) {
+                        if (!newBoard[1][x]) {
+                            newBoard[1][x] = { ...unit, position: { x, y: 1 }, startPosition: { x, y: 1 } };
+                            placed = true;
+                            break;
+                        }
+                    }
+                }
+
+                // DPS/Assassin or if No Tank Space -> Back row (Row 0 for Bot)
+                if (!placed) {
+                    for (let x = 0; x < 7; x++) {
+                        if (!newBoard[0][x]) {
+                            newBoard[0][x] = { ...unit, position: { x, y: 0 }, startPosition: { x, y: 0 } };
+                            placed = true;
+                            break;
+                        }
+                    }
+                }
+            });
+
+            // Update Bench (everything not placed)
+            const remaining = allBotUnits.filter(u => !toPlace.find(p => p.id === u.id));
+            const newBench = Array(9).fill(null);
+            remaining.slice(0, 9).forEach((u, i) => newBench[i] = u);
+
+            // Sync with Game Board (Bottom rows for player, Top for enemy)
+            setGame(gamePrev => {
+                const syncBoard = gamePrev.board.map(r => [...r]);
+                newBoard.forEach((row, y) => {
+                    row.forEach((u, x) => {
+                        syncBoard[y][x] = u ? { ...u, team: 'ENEMY' } : null;
+                    });
+                });
+                return { ...gamePrev, board: syncBoard };
+            });
+
+            return { ...prev, gold, level, xp, board: newBoard, bench: newBench };
+        });
+    };
+
+    const handleMatchEnd = async (isWinner: boolean) => {
+        if (!user || !opponent) return;
+
+        if (opponent.id === 'bot-id') {
+            alert(isWinner ? "VITÓRIA! Você derrotou a IA do Nexus." : "DERROTA! A IA foi superior desta vez.");
+            setMatchId(null);
+            setOpponent(null);
+            setBotState(null);
+            return;
+        }
+
+        if (!matchId) return;
+
+        // Update match status for PvP
+        const { error: updateError } = await supabase
             .from('matches')
             .update({
                 status: 'finished',
@@ -474,13 +646,11 @@ const App: React.FC = () => {
             })
             .eq('id', matchId);
 
-        if (!error) {
-            // Match finished successfully
-            // The trigger in Supabase will update ELO
-            alert(isWinner ? "VICTORY! Match Finished." : "DEFEAT! Match Finished.");
-            // Reset match state to go back to lobby
+        if (!updateError) {
+            alert(isWinner ? "VICTORY! ELO atualizado." : "DEFEAT! Better luck next time.");
             setMatchId(null);
             setOpponent(null);
+            if (user) fetchUserProfile(user.id);
         }
     };
 
