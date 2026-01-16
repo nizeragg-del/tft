@@ -3,7 +3,7 @@ import seedrandom from 'seedrandom';
 import { CardTemplate, CardInstance, GameState, GamePhase, Team } from './types';
 import { CARD_TEMPLATES, MONSTER_TEMPLATES, WAVES } from './data';
 import { ABILITIES } from './abilities';
-import { ShoppingCart, LayoutGrid, Users, Trophy, Heart, Coins, ArrowUpCircle, RefreshCw, Shield, Swords, Zap, LogOut, Loader2 } from 'lucide-react';
+import { ShoppingCart, LayoutGrid, Users, Trophy, Heart, Coins, ArrowUpCircle, RefreshCw, Shield, Swords, Zap, LogOut, Loader2, X } from 'lucide-react';
 import { supabase } from './supabase';
 import { Auth } from './Auth';
 import { Matchmaking } from './Matchmaking';
@@ -1170,6 +1170,19 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {opponent?.id === 'bot-id' && (
+                        <button
+                            onClick={() => {
+                                if (window.confirm("Deseja mesmo desistir da partida contra a IA? Isso encerrará seu treino.")) {
+                                    handleMatchEnd(false);
+                                }
+                            }}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-lg text-rose-500 text-[10px] font-black uppercase tracking-widest transition-all group"
+                        >
+                            <X size={14} className="group-hover:rotate-90 transition-transform" />
+                            Sair
+                        </button>
+                    )}
                     {opponent && (
                         <div className="flex items-center gap-3 px-3 py-1.5 bg-rose-500/10 border border-rose-500/20 rounded-xl animate-in slide-in-from-right-4 duration-500">
                             <div className="flex flex-col items-end leading-none">
