@@ -1288,47 +1288,47 @@ const App: React.FC = () => {
                                         )}
 
                                         {/* Unit Visual & Name Overlay */}
-                                        <div className={`w-12 h-16 rounded-lg flex flex-col items-center justify-center text-lg shadow-xl relative overflow-hidden border-2
+                                        <div className={`w-28 h-36 rounded-xl flex flex-col items-center justify-center text-lg shadow-2xl relative overflow-hidden border-2
                                             ${cell.team === 'PLAYER'
-                                                ? 'bg-gradient-to-br from-indigo-900/90 to-purple-900 border-white ring-1 ring-purple-500/30'
+                                                ? 'bg-gradient-to-br from-indigo-900/90 to-purple-900 border-white ring-2 ring-purple-500/30'
                                                 : 'bg-gradient-to-br from-rose-900 to-red-950 border-rose-500/40 grayscale-[0.2]'}`}
                                         >
                                             <UnitArt
                                                 name={(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name || '?'}
-                                                className="opacity-90"
+                                                className="opacity-95"
                                             />
 
                                             {/* Stun Indicator */}
-                                            {cell.isStunned && <div className="absolute inset-0 bg-yellow-400/50 animate-pulse flex items-center justify-center">💫</div>}
+                                            {cell.isStunned && <div className="absolute inset-0 bg-yellow-400/50 animate-pulse flex items-center justify-center text-3xl">💫</div>}
 
                                             {/* Shield */}
-                                            {(cell.currentShield || 0) > 0 && <div className="absolute inset-0 border-2 border-slate-300 rounded-lg opacity-50 animate-pulse" />}
+                                            {(cell.currentShield || 0) > 0 && <div className="absolute inset-0 border-4 border-white/50 rounded-lg opacity-60 animate-pulse" />}
 
                                             {/* Name Overlay (Mockup Style) */}
-                                            <div className="absolute bottom-0 left-0 right-0 bg-black/60 py-0.5 px-0.5 flex justify-center">
-                                                <span className={`text-[7px] font-black uppercase truncate max-w-full ${cell.team === 'PLAYER' ? 'text-white' : 'text-rose-200'}`}>
+                                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 py-1 px-0.5 flex justify-center border-t border-white/10">
+                                                <span className={`text-[10px] font-black uppercase truncate max-w-full tracking-wider ${cell.team === 'PLAYER' ? 'text-white' : 'text-rose-200'}`}>
                                                     {(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name}
                                                 </span>
                                             </div>
                                         </div>
 
                                         {/* Footer: Status Bars + Stars */}
-                                        <div className="flex items-center gap-1.5 mt-1 w-full justify-center">
+                                        <div className="flex items-center gap-2 mt-2 w-full justify-center">
                                             {/* Bars */}
-                                            <div className="flex flex-col gap-0.5 w-[32px]">
-                                                <div className="w-full h-1 bg-black/60 rounded-full overflow-hidden border border-black/20">
+                                            <div className="flex flex-col gap-1 w-[60px]">
+                                                <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-black/20 shadow-inner">
                                                     <div className={`h-full ${cell.team === 'PLAYER' ? 'bg-emerald-400' : 'bg-rose-500'}`} style={{ width: `${(cell.currentHp / cell.maxHp) * 100}%` }} />
                                                 </div>
-                                                <div className="w-full h-1 bg-black/60 rounded-full overflow-hidden border border-black/20">
+                                                <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-black/20 shadow-inner">
                                                     <div className="h-full bg-blue-400" style={{ width: `${cell.currentMana}%` }} />
                                                 </div>
                                             </div>
 
                                             {/* Stars (Next to bars) */}
                                             {cell.stars > 1 && (
-                                                <div className="flex gap-0.5">
+                                                <div className="flex gap-1">
                                                     {Array(cell.stars).fill(0).map((_, i) => (
-                                                        <div key={i} className="w-1.5 h-1.5 rotate-45 bg-yellow-400 shadow-[0_0_3px_rgba(251,191,36,0.8)]" />
+                                                        <div key={i} className="w-2.5 h-2.5 rotate-45 bg-yellow-400 shadow-[0_0_5px_rgba(251,191,36,0.9)] border border-black/20" />
                                                     ))}
                                                 </div>
                                             )}
@@ -1473,7 +1473,7 @@ const App: React.FC = () => {
                                 >
                                     {cell && template ? (
                                         <>
-                                            <div className="w-12 h-16 rounded-xl flex items-center justify-center text-xl mb-1 drop-shadow-md bg-black/20 overflow-hidden ring-1 ring-white/10">
+                                            <div className="w-20 h-28 rounded-xl flex items-center justify-center text-xl mb-1 drop-shadow-md bg-black/20 overflow-hidden ring-2 ring-white/10 group-hover:ring-white/30 transition-all">
                                                 <UnitArt name={template.name} />
                                             </div>
                                             <span className="text-[9px] font-bold uppercase truncate max-w-[50px]">{template.name}</span>
