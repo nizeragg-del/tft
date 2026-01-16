@@ -32,7 +32,7 @@ const UnitArt = ({ name, className }: { name: string, className?: string }) => {
         <img
             src={imageUrl}
             alt={name}
-            className={`w-full h-full object-cover rounded-full ${className}`}
+            className={`w-full h-full object-cover rounded-lg ${className}`}
             onError={() => {
                 if (status === 'trying_jpg') setStatus('trying_png');
                 else setStatus('error');
@@ -1298,10 +1298,10 @@ const App: React.FC = () => {
                                         </div>
 
                                         {/* Unit Visual */}
-                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg shadow-lg relative
+                                        <div className={`w-12 h-16 rounded-xl flex items-center justify-center text-lg shadow-xl relative overflow-hidden
                                             ${cell.team === 'PLAYER'
-                                                ? 'bg-gradient-to-br from-indigo-600 to-purple-700 ring-2 ring-purple-500/50'
-                                                : 'bg-gradient-to-br from-rose-700 to-red-900 ring-2 ring-rose-500/50 grayscale-[0.2]'}`}
+                                                ? 'bg-gradient-to-br from-indigo-600/80 to-purple-900/90 ring-1 ring-purple-500/50'
+                                                : 'bg-gradient-to-br from-rose-800 to-red-950 ring-1 ring-rose-500/50 grayscale-[0.2]'}`}
                                         >
                                             {/* Stars */}
                                             {cell.stars > 1 && (
@@ -1316,10 +1316,10 @@ const App: React.FC = () => {
                                             />
 
                                             {/* Stun Indicator */}
-                                            {cell.isStunned && <div className="absolute inset-0 bg-yellow-400/50 rounded-full animate-pulse flex items-center justify-center">💫</div>}
+                                            {cell.isStunned && <div className="absolute inset-0 bg-yellow-400/50 animate-pulse flex items-center justify-center">💫</div>}
 
                                             {/* Shield */}
-                                            {(cell.currentShield || 0) > 0 && <div className="absolute inset-0 border-2 border-slate-300 rounded-full opacity-50 animate-pulse" />}
+                                            {(cell.currentShield || 0) > 0 && <div className="absolute inset-0 border-2 border-slate-300 rounded-xl opacity-50 animate-pulse" />}
                                         </div>
 
                                         <span className={`text-[9px] font-bold uppercase mt-1 truncate max-w-full ${cell.team === 'PLAYER' ? 'text-purple-200' : 'text-rose-300'}`}>
@@ -1356,7 +1356,7 @@ const App: React.FC = () => {
                                             ${card ? `bg-gradient-to-r ${tierColors[card.tier]}` : 'bg-white/5 border-white/5 opacity-30 pointer-events-none'}`}>
                                         {card ? (
                                             <>
-                                                <div className="w-12 h-12 rounded bg-black/30 flex items-center justify-center text-xl font-bold border border-white/10 shadow-inner overflow-hidden">
+                                                <div className="w-12 h-16 rounded-lg bg-black/30 flex items-center justify-center text-xl font-bold border border-white/10 shadow-inner overflow-hidden">
                                                     <UnitArt name={card.name} />
                                                 </div>
                                                 <div className="flex-1 flex flex-col justify-center">
@@ -1465,7 +1465,7 @@ const App: React.FC = () => {
                                 >
                                     {cell && template ? (
                                         <>
-                                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl mb-1 drop-shadow-md bg-black/20 overflow-hidden">
+                                            <div className="w-12 h-16 rounded-xl flex items-center justify-center text-xl mb-1 drop-shadow-md bg-black/20 overflow-hidden ring-1 ring-white/10">
                                                 <UnitArt name={template.name} />
                                             </div>
                                             <span className="text-[9px] font-bold uppercase truncate max-w-[50px]">{template.name}</span>
