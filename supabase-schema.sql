@@ -71,6 +71,29 @@ CREATE INDEX IF NOT EXISTS idx_friends_user ON public.friends(user_id);
 CREATE INDEX IF NOT EXISTS idx_friends_friend ON public.friends(friend_id);
 
 -- ========================================
+-- PARTIES TABLE
+-- ========================================
+CREATE TABLE IF NOT EXISTS public.parties (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    leader_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_queue', 'in_game')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ========================================
+-- PARTY MEMBERS TABLE
+-- ========================================
+CREATE TABLE IF NOT EXISTS public.party_members (
+    party_id UUID NOT NULL REFERENCES public.parties(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (party_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_party_members_party ON public.party_members(party_id);
+CREATE INDEX IF NOT EXISTS idx_party_members_user ON public.party_members(user_id);
+
+-- ========================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ========================================
 
@@ -79,6 +102,8 @@ ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.match_states ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.friends ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.parties ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.party_members ENABLE ROW LEVEL SECURITY;
 
 -- Users: Can read all, but only update their own
 CREATE POLICY "Users can view all profiles"
@@ -139,6 +164,23 @@ CREATE POLICY "Users can add friends"
 CREATE POLICY "Users can remove friends"
     ON public.friends FOR DELETE
     USING (auth.uid() = user_id);
+
+-- Parties: Members can view, leader can manage
+CREATE POLICY "Anyone can view parties" ON public.parties FOR SELECT USING (true);
+CREATE POLICY "Leaders can create parties" ON public.parties FOR INSERT WITH CHECK (auth.uid() = leader_id);
+CREATE POLICY "Leaders can update parties" ON public.parties FOR UPDATE USING (auth.uid() = leader_id);
+CREATE POLICY "Leaders can delete parties" ON public.parties FOR DELETE USING (auth.uid() = leader_id);
+
+-- Party Members: Party members can view their group
+CREATE POLICY "Members can view their party" 
+    ON public.party_members FOR SELECT 
+    USING (EXISTS (SELECT 1 FROM public.party_members WHERE party_id = party_members.party_id AND user_id = auth.uid()));
+
+CREATE POLICY "Users can join parties" ON public.party_members FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Members can leave parties" ON public.party_members FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Leaders can kick members" 
+    ON public.party_members FOR DELETE 
+    USING (EXISTS (SELECT 1 FROM public.parties WHERE id = party_members.party_id AND leader_id = auth.uid()));
 
 -- ========================================
 -- FUNCTIONS & TRIGGERS

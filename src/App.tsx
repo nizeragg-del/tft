@@ -36,7 +36,7 @@ const App: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [sessionLoading, setSessionLoading] = useState(true);
     const [matchId, setMatchId] = useState<string | null>(null);
-    const [opponent, setOpponent] = useState<{ id: string; username: string; elo: number } | null>(null);
+    const [opponent, setOpponent] = useState<{ id: string; username: string; elo: number; health?: number } | null>(null);
     const channelRef = useRef<any>(null);
     const combatIntervalRef = useRef<any>(null);
     const combatRngRef = useRef<any>(null);
@@ -54,6 +54,9 @@ const App: React.FC = () => {
         channelRef.current
             .on('broadcast', { event: 'sync_board' }, (payload: any) => {
                 handleOpponentBoardSync(payload.payload.board);
+            })
+            .on('broadcast', { event: 'sync_health' }, (payload: any) => {
+                setOpponent(prev => prev ? { ...prev, health: payload.payload.health } : null);
             })
             .on('broadcast', { event: 'combat_start' }, (payload: any) => {
                 if (game.phase === 'PLANNING') {
@@ -167,7 +170,7 @@ const App: React.FC = () => {
 
     const handleMatchFound = (id: string, opp: { id: string; username: string; elo: number }) => {
         setMatchId(id);
-        setOpponent(opp);
+        setOpponent({ ...opp, health: 100 });
         // Reset game state for new match
         setGame({
             gold: 10,
@@ -231,27 +234,24 @@ const App: React.FC = () => {
 
         const newBoard = state.board.map(r => [...r]);
 
-        // Generate Enemies (PvE or Random)
+        // Generate Enemies (PvE or Mock PvP if no real opponent)
         const wave = WAVES[state.round];
         if (wave && wave.length > 0) {
             // PvE Round
             const validSpots: { x: number, y: number }[] = [];
-            // Enemies spawn in top 2 rows (0 and 1)
             for (let y = 0; y < 2; y++) {
                 for (let x = 0; x < 7; x++) {
                     if (!newBoard[y][x]) validSpots.push({ x, y });
                 }
             }
-
-            // Shuffle spots
             validSpots.sort(() => combatRngRef.current() - 0.5);
 
             wave.forEach((monsterId, idx) => {
-                if (idx >= validSpots.length) return; // No space left
+                if (idx >= validSpots.length) return;
                 const template = MONSTER_TEMPLATES.find(t => t.id === monsterId);
                 if (template) {
                     const spot = validSpots[idx];
-                    const monster: CardInstance = {
+                    newBoard[spot.y][spot.x] = {
                         id: combatRngRef.current().toString(36).substr(2, 9),
                         templateId: template.id,
                         stars: 1,
@@ -262,11 +262,10 @@ const App: React.FC = () => {
                         position: spot,
                         isDead: false
                     };
-                    newBoard[spot.y][spot.x] = monster;
                 }
             });
-        } else {
-            // Random Enemy (Mock PvP) - Safe Logic
+        } else if (!opponent) {
+            // Mock PvP only if no real opponent
             const validSpots: { x: number, y: number }[] = [];
             for (let y = 0; y < 2; y++) {
                 for (let x = 0; x < 7; x++) {
@@ -291,6 +290,7 @@ const App: React.FC = () => {
                 };
             }
         }
+        // If opponent exists, handleOpponentBoardSync has already populated newBoard[0] and newBoard[1]
 
         // ========== APPLY SYNERGIES ==========
         const playerUnits = newBoard.flat().filter(u => u && u.team === 'PLAYER') as CardInstance[];
@@ -347,7 +347,7 @@ const App: React.FC = () => {
                 }
 
                 // Void: Mark for true damage (handled in abilities)
-                // Celestial: Lifesteal (would need combat loop modification)
+                // Celestial: Lifesteal
                 // Chrono: AS boost
                 if (trait === 'Chrono' && count >= 2) {
                     unit.as = (unit.as || 0.6) * (count >= 4 ? 1.4 : 1.2);
@@ -436,6 +436,15 @@ const App: React.FC = () => {
             // Player won this round, check if opponent lost?
             // In a real 1v1, damage to opponent is handled by opponent's client.
             // But we can check if round is very high or other conditions.
+        }
+
+        // Broadcast health to opponent
+        if (channelRef.current) {
+            channelRef.current.send({
+                type: 'broadcast',
+                event: 'sync_health',
+                payload: { health: newHealth }
+            });
         }
 
         return {
@@ -991,6 +1000,18 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {opponent && (
+                        <div className="flex items-center gap-3 px-3 py-1.5 bg-rose-500/10 border border-rose-500/20 rounded-xl animate-in slide-in-from-right-4 duration-500">
+                            <div className="flex flex-col items-end leading-none">
+                                <span className="text-[10px] text-rose-300 font-black uppercase tracking-tighter truncate max-w-[80px]">{opponent.username}</span>
+                                <span className="text-[9px] text-rose-500/50 font-bold tracking-widest">{opponent.elo} ELO</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-rose-400">
+                                <Heart size={14} fill="currentColor" className="drop-shadow-[0_0_5px_rgba(244,63,94,0.5)]" />
+                                <span className="text-sm font-black">{opponent.health ?? 100}</span>
+                            </div>
+                        </div>
+                    )}
                     <div className="flex items-center gap-2 text-rose-500 bg-rose-500/10 px-3 py-1.5 rounded-lg border border-rose-500/20">
                         <Heart size={18} fill="currentColor" />
                         <span className="text-xl font-bold">{game.health}</span>
