@@ -56,6 +56,21 @@ CREATE TABLE IF NOT EXISTS public.match_states (
 CREATE INDEX IF NOT EXISTS idx_match_states_match_id ON public.match_states(match_id);
 
 -- ========================================
+-- FRIENDS TABLE
+-- ========================================
+CREATE TABLE IF NOT EXISTS public.friends (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    friend_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'accepted' CHECK (status IN ('pending', 'accepted')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, friend_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_friends_user ON public.friends(user_id);
+CREATE INDEX IF NOT EXISTS idx_friends_friend ON public.friends(friend_id);
+
+-- ========================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ========================================
 
@@ -63,6 +78,7 @@ CREATE INDEX IF NOT EXISTS idx_match_states_match_id ON public.match_states(matc
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.match_states ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.friends ENABLE ROW LEVEL SECURITY;
 
 -- Users: Can read all, but only update their own
 CREATE POLICY "Users can view all profiles"
@@ -72,6 +88,10 @@ CREATE POLICY "Users can view all profiles"
 CREATE POLICY "Users can update own profile"
     ON public.users FOR UPDATE
     USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own profile"
+    ON public.users FOR INSERT
+    WITH CHECK (auth.uid() = id);
 
 -- Matches: Players can only access their own matches
 CREATE POLICY "Players can view their matches"
@@ -106,6 +126,19 @@ CREATE POLICY "Players can insert match states"
             AND (matches.player1_id = auth.uid() OR matches.player2_id = auth.uid())
         )
     );
+
+-- Friends: Users can see and manage their own friendships
+CREATE POLICY "Users can view their friendships"
+    ON public.friends FOR SELECT
+    USING (auth.uid() = user_id OR auth.uid() = friend_id);
+
+CREATE POLICY "Users can add friends"
+    ON public.friends FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can remove friends"
+    ON public.friends FOR DELETE
+    USING (auth.uid() = user_id);
 
 -- ========================================
 -- FUNCTIONS & TRIGGERS
