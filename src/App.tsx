@@ -3,10 +3,11 @@ import seedrandom from 'seedrandom';
 import { CardTemplate, CardInstance, GameState, GamePhase, Team } from './types';
 import { CARD_TEMPLATES, MONSTER_TEMPLATES, WAVES } from './data';
 import { ABILITIES } from './abilities';
-import { ShoppingCart, LayoutGrid, Users, Trophy, Heart, Coins, ArrowUpCircle, RefreshCw, Shield, Swords, Zap, LogOut, Loader2, X } from 'lucide-react';
+import { ShoppingCart, LayoutGrid, Users, Trophy, Heart, Coins, ArrowUpCircle, RefreshCw, Shield, Swords, Zap, LogOut, Loader2, X, BookOpen } from 'lucide-react';
 import { supabase } from './supabase';
 import { Auth } from './Auth';
 import { Matchmaking } from './Matchmaking';
+import { CardGallery } from './CardGallery';
 import { User } from './types';
 
 const TIER_COSTS = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
@@ -14,6 +15,31 @@ const XP_COST = 4;
 const XP_AMOUNT = 4;
 const REROLL_COST = 2;
 const PHASE_DURATION = { PLANNING: 30, COMBAT: 45 };
+
+const UnitArt = ({ name, className }: { name: string, className?: string }) => {
+    const [status, setStatus] = useState<'trying_jpg' | 'trying_png' | 'error'>('trying_jpg');
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
+    if (status === 'error' || !supabaseUrl) {
+        return <span className="font-bold drop-shadow-md text-white/80">{name[0].toUpperCase()}</span>;
+    }
+
+    const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const extension = status === 'trying_jpg' ? 'jpg' : 'png';
+    const imageUrl = `${supabaseUrl}/storage/v1/object/public/card-art/${cleanName}.${extension}`;
+
+    return (
+        <img
+            src={imageUrl}
+            alt={name}
+            className={`w-full h-full object-cover rounded-full ${className}`}
+            onError={() => {
+                if (status === 'trying_jpg') setStatus('trying_png');
+                else setStatus('error');
+            }}
+        />
+    );
+};
 
 const App: React.FC = () => {
     const [game, setGame] = useState<GameState>({
@@ -45,6 +71,7 @@ const App: React.FC = () => {
         board: (CardInstance | null)[][];
         bench: (CardInstance | null)[];
     } | null>(null);
+    const [isGalleryOpen, setIsGalleryOpen] = useState(false);
     const channelRef = useRef<any>(null);
     const combatIntervalRef = useRef<any>(null);
     const combatRngRef = useRef<any>(null);
@@ -1087,15 +1114,25 @@ const App: React.FC = () => {
                             <span className="text-[10px] text-purple-300 font-black uppercase tracking-wider">{user.elo} ELO</span>
                         </div>
                     </div>
-                    <button
-                        onClick={handleSignOut}
-                        className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-rose-500/10 hover:border-rose-500/20 text-slate-400 hover:text-rose-500 transition-all flex items-center gap-2 font-bold text-sm"
-                    >
-                        <LogOut size={18} /> LOGOUT
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setIsGalleryOpen(true)}
+                            className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-purple-500/10 hover:border-purple-500/20 text-slate-400 hover:text-purple-400 transition-all flex items-center gap-2 font-bold text-sm mr-2"
+                        >
+                            <BookOpen size={18} /> COLEÇÃO
+                        </button>
+                        <button
+                            onClick={handleSignOut}
+                            className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-rose-500/10 hover:border-rose-500/20 text-slate-400 hover:text-rose-500 transition-all flex items-center gap-2 font-bold text-sm"
+                        >
+                            <LogOut size={18} /> LOGOUT
+                        </button>
+                    </div>
                 </div>
 
                 <Matchmaking user={user} onMatchFound={handleMatchFound} />
+
+                {isGalleryOpen && <CardGallery onClose={() => setIsGalleryOpen(false)} />}
             </div>
         );
     }
@@ -1274,9 +1311,9 @@ const App: React.FC = () => {
                                                     ))}
                                                 </div>
                                             )}
-                                            <span className="font-bold drop-shadow-md">
-                                                {(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name[0]}
-                                            </span>
+                                            <UnitArt
+                                                name={(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name || '?'}
+                                            />
 
                                             {/* Stun Indicator */}
                                             {cell.isStunned && <div className="absolute inset-0 bg-yellow-400/50 rounded-full animate-pulse flex items-center justify-center">💫</div>}
@@ -1319,8 +1356,8 @@ const App: React.FC = () => {
                                             ${card ? `bg-gradient-to-r ${tierColors[card.tier]}` : 'bg-white/5 border-white/5 opacity-30 pointer-events-none'}`}>
                                         {card ? (
                                             <>
-                                                <div className="w-12 h-12 rounded bg-black/30 flex items-center justify-center text-xl font-bold border border-white/10 shadow-inner">
-                                                    {card.name[0]}
+                                                <div className="w-12 h-12 rounded bg-black/30 flex items-center justify-center text-xl font-bold border border-white/10 shadow-inner overflow-hidden">
+                                                    <UnitArt name={card.name} />
                                                 </div>
                                                 <div className="flex-1 flex flex-col justify-center">
                                                     <div className="flex justify-between items-center">
@@ -1428,7 +1465,9 @@ const App: React.FC = () => {
                                 >
                                     {cell && template ? (
                                         <>
-                                            <div className="text-xl mb-1 drop-shadow-md">{template.name[0]}</div>
+                                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl mb-1 drop-shadow-md bg-black/20 overflow-hidden">
+                                                <UnitArt name={template.name} />
+                                            </div>
                                             <span className="text-[9px] font-bold uppercase truncate max-w-[50px]">{template.name}</span>
                                             <div className="flex gap-0.5 mt-1">
                                                 {Array(cell.stars).fill(0).map((_, i) => (

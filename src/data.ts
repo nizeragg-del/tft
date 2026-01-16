@@ -14,7 +14,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Protector', 'Steel'],
         abilityName: 'Iron Shield',
-        abilityDescription: 'Gains 200 shield for 4 seconds.'
+        abilityDescription: 'Gains 200 shield for 4 seconds.',
+        lore: 'A wall of steel in a world of glass. He stood alone at the Nexus gates for three days.'
     },
     {
         id: 'c2',
@@ -28,7 +29,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Assassin', 'Shadow'],
         abilityName: 'Toxic Strike',
-        abilityDescription: 'Next attack deals 50 bonus poison damage.'
+        abilityDescription: 'Next attack deals 50 bonus poison damage.',
+        lore: 'Born in the slums of Zenith, she learned that a silent blade speaks louder than a thousand words.'
     },
     {
         id: 'c1_3',
@@ -42,7 +44,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 3,
         traits: ['Sniper', 'Wind'],
         abilityName: 'Rapid Fire',
-        abilityDescription: 'Gains 50% attack speed for 3 seconds.'
+        abilityDescription: 'Gains 50% attack speed for 3 seconds.',
+        lore: 'The wind is her guide, the emerald light her weapon. She never misses a target.'
     },
     {
         id: 'c1_4',
@@ -56,7 +59,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Brawler', 'Mech'],
         abilityName: 'Scrap Shield',
-        abilityDescription: 'Gains 150 shield.'
+        abilityDescription: 'Gains 150 shield.',
+        lore: 'Born from the junkyards of the old world, Scrap is a testament to survival and repurposed iron.'
     },
     {
         id: 'c1_5',
@@ -70,7 +74,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 2,
         traits: ['Mage', 'Mystic'],
         abilityName: 'Healing Touch',
-        abilityDescription: 'Heals lowest HP ally for 200.'
+        abilityDescription: 'Heals lowest HP ally for 200.',
+        lore: 'A former scientist who found divinity in the light of the dying stars.'
     },
     {
         id: 'c1_6',
@@ -84,7 +89,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 3,
         traits: ['Cybernetic', 'Gunner'],
         abilityName: 'Double Shot',
-        abilityDescription: 'Fires 2 shots at random enemies.'
+        abilityDescription: 'Fires 2 shots at random enemies.',
+        lore: 'Sentience was an accident; efficiency was a choice. Drone 7-X sees all.'
     },
 
     // ========== TIER 2 (2g) ==========
@@ -100,7 +106,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 3,
         traits: ['Mage', 'Mystic'],
         abilityName: 'Arcane Bolt',
-        abilityDescription: 'Deals 150 magic damage to target.'
+        abilityDescription: 'Deals 150 magic damage to target.',
+        lore: 'A silent eye in the magical storm. The Oracle doesn’t just see the future; she shapes it.'
     },
     {
         id: 'c4',
@@ -114,7 +121,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Brawler', 'Earth'],
         abilityName: 'Ground Slam',
-        abilityDescription: 'Stuns adjacent enemies for 1.5s.'
+        abilityDescription: 'Stuns adjacent enemies for 1.5s.',
+        lore: 'Words are for the weak. The Brawler prefers the sound of breaking stone and bone.'
     },
     {
         id: 'c2_3',
@@ -128,7 +136,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Assassin', 'Void'],
         abilityName: 'Backstab',
-        abilityDescription: 'Teleports behind enemy, deals 200 damage.'
+        abilityDescription: 'Teleports behind enemy, deals 200 damage.',
+        lore: 'A ghost in the machine. He strikes from the void and leaves only cold silence behind.'
     },
     {
         id: 'c2_4',
@@ -142,7 +151,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Protector', 'Celestial'],
         abilityName: 'Taunt',
-        abilityDescription: 'Forces nearby enemies to attack this unit.'
+        abilityDescription: 'Forces nearby enemies to attack this unit.',
+        lore: 'Guardian of the forgotten realms. His shield has withstood the heat of a thousand suns.'
     },
     {
         id: 'c2_5',
@@ -156,7 +166,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 3,
         traits: ['Gunner', 'Cybernetic'],
         abilityName: 'Missile Barrage',
-        abilityDescription: 'Fires 3 missiles at random enemies.'
+        abilityDescription: 'Fires 3 missiles at random enemies.',
+        lore: 'Precision is overrated. Blaster believes that if you shoot enough, you will eventually hit everything.'
     },
     {
         id: 'c2_6',
@@ -170,9 +181,9 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Blademaster', 'Wind'],
         abilityName: 'Dash Strike',
-        abilityDescription: 'Dashes to enemy, deals 180 damage.'
+        abilityDescription: 'Dashes to enemy, deals 180 damage.',
+        lore: 'A traveler of the wastes. He carries no map, only a sword and a thirst for challenge.'
     },
-
     // ========== TIER 3 (3g) ==========
     {
         id: 'c5',
@@ -186,7 +197,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 4,
         traits: ['Sniper', 'Wind'],
         abilityName: 'Piercing Shot',
-        abilityDescription: 'Next attack deals damage to all enemies in a line.'
+        abilityDescription: 'Next attack deals damage to all enemies in a line.',
+        lore: 'One shot, one story. She marks her prey with the wind itself.'
     },
     {
         id: 'c3_2',
@@ -200,7 +212,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Brawler', 'Void'],
         abilityName: 'Void Bite',
-        abilityDescription: 'Deals 250 true damage (ignores armor).'
+        abilityDescription: 'Deals 250 true damage (ignores armor).',
+        lore: 'An endless hunger from the dark between stars. It doesn’t just eat; it erases.'
     },
     {
         id: 'c3_3',
@@ -214,7 +227,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 3,
         traits: ['Mage', 'Chrono'],
         abilityName: 'Time Freeze',
-        abilityDescription: 'Stuns target for 2 seconds.'
+        abilityDescription: 'Stuns target for 2 seconds.',
+        lore: 'Time is a river, and Flux Mage is the dam. He can turn a second into an eternity.'
     },
     {
         id: 'c3_4',
@@ -228,7 +242,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Blademaster', 'Steel'],
         abilityName: 'Whirlwind',
-        abilityDescription: 'Spins, dealing 150 damage to adjacent enemies.'
+        abilityDescription: 'Spins, dealing 150 damage to adjacent enemies.',
+        lore: 'Leader of the Iron Vanguard. His blade has carved empires and ended bloodlines.'
     },
     {
         id: 'c3_5',
@@ -242,7 +257,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 2,
         traits: ['Cybernetic', 'Mystic'],
         abilityName: 'Life Drain',
-        abilityDescription: 'Drains 200 HP from enemy, heals self.'
+        abilityDescription: 'Drains 200 HP from enemy, heals self.',
+        lore: 'Tiny machines, huge power. She heals with the same precision she kills.'
     },
     {
         id: 'c3_6',
@@ -256,7 +272,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Protector', 'Celestial'],
         abilityName: 'Divine Shield',
-        abilityDescription: 'Becomes immune to damage for 2 seconds.'
+        abilityDescription: 'Becomes immune to damage for 2 seconds.',
+        lore: 'A fallen angel rebuilding his wings with celestial light and cold fury.'
     },
 
     // ========== TIER 4 (4g) ==========
@@ -272,7 +289,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Brawler', 'Earth'],
         abilityName: 'Earthquake',
-        abilityDescription: 'Knocks back all nearby enemies, deals 200 damage.'
+        abilityDescription: 'Knocks back all nearby enemies, deals 200 damage.',
+        lore: 'A mountain given legs. He doesn’t move for the world; the world moves for him.'
     },
     {
         id: 'c4_2',
@@ -286,7 +304,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 3,
         traits: ['Mage', 'Chrono'],
         abilityName: 'Dragon Breath',
-        abilityDescription: 'Breathes fire in a cone, dealing 300 magic damage over time.'
+        abilityDescription: 'Breathes fire in a cone, dealing 300 magic damage over time.',
+        lore: 'Legend says the dragon was the first being to dream. Its breath is the stuff of nightmares.'
     },
     {
         id: 'c4_3',
@@ -300,7 +319,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Assassin', 'Shadow'],
         abilityName: 'Execute',
-        abilityDescription: 'Instantly kills enemies below 30% HP.'
+        abilityDescription: 'Instantly kills enemies below 30% HP.',
+        lore: 'Life is just a delay between two moments of silence. Phantom is the one who speeds up the process.'
     },
     {
         id: 'c4_4',
@@ -314,7 +334,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 3,
         traits: ['Mystic', 'Wind'],
         abilityName: 'Tornado',
-        abilityDescription: 'Summons tornado, stunning all enemies for 1.5s.'
+        abilityDescription: 'Summons tornado, stunning all enemies for 1.5s.',
+        lore: 'She speaks in thunder and weeps in rain. The weather is just her mood on display.'
     },
     {
         id: 'c4_5',
@@ -328,7 +349,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 2,
         traits: ['Mech', 'Gunner'],
         abilityName: 'Mech Transform',
-        abilityDescription: 'Transforms, gaining 500 HP and 50 AD.'
+        abilityDescription: 'Transforms, gaining 500 HP and 50 AD.',
+        lore: 'Human skin is too fragile. Real strength is built in the forge and fueled by fusion.'
     },
     {
         id: 'c4_6',
@@ -342,9 +364,9 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Blademaster', 'Celestial'],
         abilityName: 'Shockwave',
-        abilityDescription: 'Sends energy wave, dealing 250 damage in a line.'
+        abilityDescription: 'Sends energy wave, dealing 250 damage in a line.',
+        lore: 'The sharpest sword is the one that never needs to strike. But Highblade strikes anyway.'
     },
-
     // ========== TIER 5 (5g - Legendary) ==========
     {
         id: 'c5_1',
@@ -358,7 +380,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 4,
         traits: ['Cybernetic', 'Steel'],
         abilityName: 'Orbital Laser',
-        abilityDescription: 'Fires laser from orbit, dealing 400 damage to all enemies.'
+        abilityDescription: 'Fires laser from orbit, dealing 400 damage to all enemies.',
+        lore: 'The beating heart of the digital world. It knows everything, and eventually, deletes everything.'
     },
     {
         id: 'c5_2',
@@ -372,7 +395,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 2,
         traits: ['Void', 'Mage'],
         abilityName: 'Summon Voidlings',
-        abilityDescription: 'Summons 3 mini-voids to fight.'
+        abilityDescription: 'Summons 3 mini-voids to fight.',
+        lore: 'She birthed the darkness before the stars. Her children are hungry, and the universe is their feast.'
     },
     {
         id: 'c5_3',
@@ -386,7 +410,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 3,
         traits: ['Chrono', 'Mystic'],
         abilityName: 'Time Stop',
-        abilityDescription: 'Freezes all enemies for 3 seconds.'
+        abilityDescription: 'Freezes all enemies for 3 seconds.',
+        lore: 'He has seen the end of time, and he wasn’t impressed. He’s here to make sure it happens correctly.'
     },
     {
         id: 'c5_4',
@@ -400,7 +425,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Celestial', 'Protector'],
         abilityName: 'Cosmic Shield',
-        abilityDescription: 'Grants 500 shield to all allies.'
+        abilityDescription: 'Grants 500 shield to all allies.',
+        lore: 'He crafts galaxies like a blacksmith crafts horseshoes. To him, planets are just sparks in the forge.'
     },
     {
         id: 'c5_5',
@@ -414,7 +440,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 4,
         traits: ['Assassin', 'Shadow', 'Sniper'],
         abilityName: 'Assassination',
-        abilityDescription: 'Instantly kills one non-boss enemy.'
+        abilityDescription: 'Instantly kills one non-boss enemy.',
+        lore: 'A secret told by a dying star. If you hear her name, it’s already too late.'
     },
     {
         id: 'c5_6',
@@ -428,7 +455,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
         range: 1,
         traits: ['Mech', 'Brawler'],
         abilityName: 'Self-Destruct',
-        abilityDescription: 'On death, explodes dealing 600 damage to all nearby enemies.'
+        abilityDescription: 'On death, explodes dealing 600 damage to all nearby enemies.',
+        lore: 'The final answer to a question no one wanted to ask. When Omega arrives, the discussion is over.'
     }
 ];
 

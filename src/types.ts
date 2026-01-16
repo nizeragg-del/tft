@@ -24,6 +24,7 @@ export interface CardTemplate {
     traits: string[];
     abilityName: string;
     abilityDescription: string;
+    lore?: string; // Narrative description [NEW]
 }
 
 export interface CardInstance {

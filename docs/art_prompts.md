@@ -9,11 +9,11 @@ Para manter a consistência, adicione este sufixo a todos os prompts:
 ---
 
 ## 💎 Tier 1 (1g)
-- **Vanguard**: A stoic knight in glowing steel armor holding a massive futuristic tower shield, blue energy lines, front line defender.
-- **Stinger**: A slender hooded assassin with twin glowing green daggers, shadow smoke trailing, agile and deadly stance.
-- **Ranger**: An archer with a bow made of solidified wind and light, emerald green energy, feathers floating around.
-- **Scrap**: A bulky mechanical golem made of repurposed junk and heavy iron, emitting orange steam and sparks.
-- **Acolyte**: A priest in white and gold cybernetic robes, channeling a sphere of pure healing light between their hands.
+**Vanguard**: A stoic knight in glowing steel armor holding a massive futuristic tower shield, blue energy lines, front line defender.
+**Stinger**: A slender hooded assassin with twin glowing green daggers, shadow smoke trailing, agile and deadly stance.
+**Ranger**: An archer with a bow made of solidified wind and light, emerald green energy, feathers floating around.
+**Scrap**: A bulky mechanical golem made of repurposed junk and heavy iron, emitting orange steam and sparks.
+**Acolyte**: A priest in white and gold cybernetic robes, channeling a sphere of pure healing light between their hands.
 - **Drone**: A high-tech surveillance drone with multiple laser lenses and sleek metallic winglets, firing twin blue plasma bolts.
 
 ## 💎 Tier 2 (2g)
