@@ -118,10 +118,10 @@ CREATE POLICY "Users can insert own profile"
     ON public.users FOR INSERT
     WITH CHECK (auth.uid() = id);
 
--- Matches: Players can only access their own matches
-CREATE POLICY "Players can view their matches"
+-- Matches: Players can view waiting matches or their own
+CREATE POLICY "Players can view waiting matches or their own"
     ON public.matches FOR SELECT
-    USING (auth.uid() = player1_id OR auth.uid() = player2_id);
+    USING (status = 'waiting' OR auth.uid() = player1_id OR auth.uid() = player2_id);
 
 CREATE POLICY "Players can create matches"
     ON public.matches FOR INSERT

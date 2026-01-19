@@ -19,7 +19,7 @@ export const PartyLobby: React.FC<PartyLobbyProps> = ({ user, partyId, onPartyJo
     useEffect(() => {
         if (!partyId) {
             // Listen for invites when not in a party
-            const inviteChannel = supabase.channel(`invites:${user.id}`)
+            const inviteChannel = supabase.channel(`comm:${user.id}`)
                 .on('broadcast', { event: 'party_invite' }, (payload) => {
                     setInvites(prev => [...prev.filter(i => i.party_id !== payload.payload.party_id), payload.payload]);
                 })

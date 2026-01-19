@@ -84,20 +84,33 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
         return () => clearInterval(interval);
     }, [searching]);
 
-    // Handle party-wide matchmaking signals
+    // Handle party-wide matchmaking and challenges
     useEffect(() => {
-        if (!partyId) return;
+        // Invite & Challenge Listener
+        const inviteChannel = supabase.channel(`comm:${user.id}`)
+            .on('broadcast', { event: 'match_challenge' }, async (payload) => {
+                const confirmed = window.confirm(`${payload.payload.leader_name} te desafiou para um X1! Aceitar?`);
+                if (confirmed) {
+                    await acceptChallenge(payload.payload.leader_id, payload.payload.leader_name);
+                }
+            })
+            .on('broadcast', { event: 'challenge_accepted' }, (payload) => {
+                if (payload.payload.match_id) {
+                    onMatchFound(payload.payload.match_id, payload.payload.opponent);
+                }
+            })
+            .subscribe();
+
+        if (!partyId) return () => { supabase.removeChannel(inviteChannel); };
 
         const partyChannel = supabase.channel(`party:${partyId}`)
             .on('broadcast', { event: 'start_searching' }, (payload) => {
                 if (!searching) {
                     if (payload.payload.match_id) {
-                        // Leader already created a match, join it
                         joinExistingMatch(payload.payload.match_id);
                     } else if (payload.payload.is_bot) {
                         startBotMatch();
                     } else {
-                        // For solo or if leader didn't provide ID (legacy)
                         findMatch();
                     }
                 }
@@ -107,8 +120,11 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
             })
             .subscribe();
 
-        return () => { supabase.removeChannel(partyChannel); };
-    }, [partyId, searching]);
+        return () => {
+            supabase.removeChannel(inviteChannel);
+            supabase.removeChannel(partyChannel);
+        };
+    }, [partyId, searching, user.id]);
 
     const fetchFriends = async () => {
         // Fetch Accepted Friends
@@ -300,11 +316,11 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
 
     const inviteFriend = async (friendId: string) => {
         if (!partyId) {
-            alert('Create a party first to invite friends!');
+            alert('Crie um grupo primeiro para convidar amigos!');
             return;
         }
 
-        const inviteChannel = supabase.channel(`invites:${friendId}`);
+        const inviteChannel = supabase.channel(`comm:${friendId}`);
         await inviteChannel.subscribe(async (status) => {
             if (status === 'SUBSCRIBED') {
                 await inviteChannel.send({
@@ -316,10 +332,70 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
                         leader_id: user.id
                     }
                 });
-                alert('Invitation sent!');
-                supabase.removeChannel(inviteChannel);
+                alert('Convite enviado!');
+                // Don't remove channel yet to ensure delivery, but we can't wait forever
+                setTimeout(() => supabase.removeChannel(inviteChannel), 2000);
             }
         });
+    };
+
+    const sendChallenge = async (friendId: string, name: string) => {
+        const challengeChannel = supabase.channel(`comm:${friendId}`);
+        await challengeChannel.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                await challengeChannel.send({
+                    type: 'broadcast',
+                    event: 'match_challenge',
+                    payload: {
+                        leader_name: user.username,
+                        leader_id: user.id,
+                        is_x1: true
+                    }
+                });
+                alert(`Desafio enviado para ${name}!`);
+                setTimeout(() => supabase.removeChannel(challengeChannel), 2000);
+            }
+        });
+    };
+
+    const acceptChallenge = async (challengerId: string, challengerName: string) => {
+        setSocialLoading(true);
+        try {
+            const { data: challengerData } = await supabase.from('users').select('*').eq('id', challengerId).single();
+            if (!challengerData) throw new Error('Opponent not found');
+
+            const { data: newMatch, error } = await supabase
+                .from('matches')
+                .insert([{
+                    player1_id: user.id,
+                    player2_id: challengerId,
+                    status: 'in_progress'
+                }])
+                .select().single();
+
+            if (error) throw error;
+
+            if (newMatch) {
+                const responseChannel = supabase.channel(`comm:${challengerId}`);
+                await responseChannel.subscribe(async (status) => {
+                    if (status === 'SUBSCRIBED') {
+                        await responseChannel.send({
+                            type: 'broadcast',
+                            event: 'challenge_accepted',
+                            payload: {
+                                match_id: newMatch.id,
+                                opponent: user
+                            }
+                        });
+                        onMatchFound(newMatch.id, challengerData);
+                        setTimeout(() => supabase.removeChannel(responseChannel), 2000);
+                    }
+                });
+            }
+        } catch (err: any) {
+            alert(err.message);
+        }
+        setSocialLoading(false);
     };
 
     const startPartySearch = () => {
@@ -475,9 +551,16 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound }) 
                                         </div>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
+                                                onClick={() => sendChallenge(friend.id, friend.username)}
+                                                className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors border border-transparent hover:border-rose-500/20"
+                                                title="Desafio 1v1 (X1)"
+                                            >
+                                                <Swords size={16} />
+                                            </button>
+                                            <button
                                                 onClick={() => inviteFriend(friend.id)}
                                                 className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors border border-transparent hover:border-emerald-500/20"
-                                                title="Chammar para Lobby"
+                                                title="Chamar para Lobby"
                                             >
                                                 <Zap size={16} />
                                             </button>

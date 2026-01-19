@@ -325,8 +325,25 @@ const App: React.FC = () => {
                     };
                 }
             });
+        } else if (opponent?.id === 'bot-id' && botState) {
+            // Practice Match: Use Bot's persistent board
+            for (let y = 0; y < 2; y++) {
+                for (let x = 0; x < 7; x++) {
+                    const botUnit = botState.board[y][x];
+                    if (botUnit) {
+                        newBoard[y][x] = {
+                            ...botUnit,
+                            currentHp: botUnit.maxHp,
+                            currentMana: 0,
+                            isDead: false,
+                            team: 'ENEMY',
+                            position: { x, y }
+                        };
+                    }
+                }
+            }
         } else if (!opponent) {
-            // Mock PvP only if no real opponent
+            // Mock PvP only if no real opponent (and not a bot match)
             const validSpots: { x: number, y: number }[] = [];
             for (let y = 0; y < 2; y++) {
                 for (let x = 0; x < 7; x++) {
