@@ -85,7 +85,7 @@ export const BattlefieldHUD: React.FC<BattlefieldHUDProps> = ({ user, opponent, 
                 </div>
 
                 <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 shrink-0">
-                    Round {game.round}
+                    Rodada {game.round}
                 </div>
 
                 <button

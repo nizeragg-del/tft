@@ -76,7 +76,7 @@ export const BattlefieldSidebar: React.FC<BattlefieldSidebarProps> = ({ game }) 
 
                     <div className="mt-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-amber-400/60 transition-colors">
                         <Info size={10} />
-                        +{currentInterest} Gold por round
+                        +{currentInterest} Ouro por rodada
                     </div>
 
                     {/* Background Detail */}

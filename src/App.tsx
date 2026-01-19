@@ -16,6 +16,7 @@ import { BattlefieldHUD } from './BattlefieldHUD';
 import { BattlefieldSidebar } from './BattlefieldSidebar';
 import { BattleBoard } from './BattleBoard';
 import { BattlefieldActions } from './BattlefieldActions';
+import { ShopModal } from './ShopModal';
 import UnitArt from './UnitArt';
 
 export const TIER_COSTS = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
@@ -816,6 +817,15 @@ const App: React.FC = () => {
                 selectedInBench={selectedInBench}
                 selectedInBoard={selectedInBoard}
             />
+            {isShopOpen && (
+                <ShopModal
+                    shop={game.shop}
+                    gold={game.gold}
+                    onBuyCard={buyCard}
+                    onReroll={rerollShop}
+                    onClose={() => setIsShopOpen(false)}
+                />
+            )}
             {game.augmentSelection && <AugmentSelection options={game.augmentSelection} onSelect={handleSelectAugment} />}
             {isGalleryOpen && <CardGallery onClose={() => setIsGalleryOpen(false)} />}
         </div>
