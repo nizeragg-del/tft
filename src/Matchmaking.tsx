@@ -471,7 +471,7 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound, on
                                     { label: 'Partidas', val: user.wins + user.losses, icon: Swords, color: 'text-slate-400' },
                                     { label: 'Desistências', val: user.surrender_count_week || 0, icon: Zap, color: 'text-rose-500' },
                                     { label: 'Nexus Credits', val: '2.4k', icon: Coins, color: 'text-emerald-400' }
-                                ].map((stat, i) => (stat.label === 'Desistências' && user.surrender_count_week >= 5 ? { ...stat, label: 'Alerta! Desistências', color: 'text-rose-600 animate-pulse' } : stat)).map((stat, i) => (
+                                ].map((stat, i) => (stat.label === 'Desistências' && (user.surrender_count_week ?? 0) >= 5 ? { ...stat, label: 'Alerta! Desistências', color: 'text-rose-600 animate-pulse' } : stat)).map((stat, i) => (
                                     <div key={i} className="bg-[#161618]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-6 text-center">
                                         <stat.icon size={24} className={`mx-auto mb-3 ${stat.color}`} />
                                         <p className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">{stat.label}</p>
