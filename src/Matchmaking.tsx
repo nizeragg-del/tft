@@ -327,10 +327,10 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound, on
             />
 
             <main className="flex-1 flex flex-col relative overflow-hidden">
-                <header className="p-8 flex justify-center z-20">
+                <header className="p-4 flex justify-center z-20">
                     <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">{onlineCount.toLocaleString()} Players Online</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">{onlineCount.toLocaleString()} Jogadores Online</span>
                     </div>
                 </header>
 
@@ -345,8 +345,8 @@ export const Matchmaking: React.FC<MatchmakingProps> = ({ user, onMatchFound, on
                     partyId={partyId}
                 />
 
-                <footer className="p-8 text-center text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em] relative z-20">
-                    Nexus Tactics v2.5.0 • All Rights Reserved
+                <footer className="p-4 text-center text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em] relative z-20">
+                    Nexus Tactics v2.5.0 • Todos os Direitos Reservados
                 </footer>
             </main>
 
