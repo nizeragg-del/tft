@@ -1325,331 +1325,331 @@ const App: React.FC = () => {
                         <LogOut size={18} />
                     </button>
                 </div>
+            </div>
 
-                {/* Main Content Area (Board) */}
-                <div className="flex-1 relative flex items-center justify-center mb-4 z-10 perspective-[1000px]">
-                    {/* Thematic Board Container: Dark Mossy/Grass Theme */}
-                    <div className="w-full max-w-5xl aspect-[7/4] bg-[#0E1512] rounded-3xl border-4 border-[#2A3E32] p-4 grid grid-rows-4 grid-cols-7 gap-2 relative shadow-[0_0_50px_rgba(34,197,94,0.1)] transform transition-all duration-500 overflow-hidden">
+            {/* Main Content Area (Board) */}
+            <div className="flex-1 relative flex items-center justify-center mb-4 z-10 perspective-[1000px]">
+                {/* Thematic Board Container: Dark Mossy/Grass Theme */}
+                <div className="w-full max-w-5xl aspect-[7/4] bg-[#0E1512] rounded-3xl border-4 border-[#2A3E32] p-4 grid grid-rows-4 grid-cols-7 gap-2 relative shadow-[0_0_50px_rgba(34,197,94,0.1)] transform transition-all duration-500 overflow-hidden">
 
-                        {/* Texture/Grass Effect */}
-                        <div className="absolute inset-0 opacity-20 pointer-events-none"
-                            style={{
-                                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2322c55e' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                            }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#152e22]/50 via-transparent to-[#0a120e]/80 pointer-events-none" />
+                    {/* Texture/Grass Effect */}
+                    <div className="absolute inset-0 opacity-20 pointer-events-none"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2322c55e' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                        }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#152e22]/50 via-transparent to-[#0a120e]/80 pointer-events-none" />
 
-                        {/* Center Line */}
-                        <div className="absolute inset-x-0 top-1/2 h-0.5 bg-emerald-500/10 pointer-events-none blur-[1px]" />
+                    {/* Center Line */}
+                    <div className="absolute inset-x-0 top-1/2 h-0.5 bg-emerald-500/10 pointer-events-none blur-[1px]" />
 
-                        {/* VFX: Floating Text */}
-                        <AnimatePresence>
-                            {game.floatingTexts?.map(text => (
-                                <motion.div
-                                    key={text.id}
-                                    initial={{ opacity: 1, y: 0, scale: 1 }}
-                                    animate={{ opacity: 0, y: -60, scale: 1.5 }}
-                                    transition={{ duration: 0.8 }}
-                                    className={`absolute z-[100] font-black pointer-events-none drop-shadow-md select-none
-                                    ${text.type === 'damage' ? 'text-white text-lg' :
-                                            text.type === 'gold' ? 'text-amber-400 text-xl' :
-                                                text.type === 'mana' ? 'text-blue-400 text-lg' : 'text-emerald-400 text-lg'}`}
-                                    style={{
-                                        left: `${text.x * 14.28 + 3}%`,
-                                        top: `${text.y * 25 + 5}%`,
-                                    }}
-                                >
-                                    {text.type === 'gold' ? <span className="flex items-center gap-1"><Coins size={14} /> {text.value}</span> : text.value}
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-
-                        {/* VFX: Projectiles */}
-                        {game.projectiles?.map(p => (
+                    {/* VFX: Floating Text */}
+                    <AnimatePresence>
+                        {game.floatingTexts?.map(text => (
                             <motion.div
-                                key={p.id}
-                                initial={{ left: `${p.sourcePos.x * 14.28 + 7}%`, top: `${p.sourcePos.y * 25 + 12}%`, opacity: 1 }}
-                                animate={{ left: `${p.targetPos.x * 14.28 + 7}%`, top: `${p.targetPos.y * 25 + 12}%`, opacity: 0.5 }}
-                                transition={{ duration: 0.3, ease: "linear" }}
-                                className="absolute w-3 h-3 bg-blue-400 rounded-full shadow-[0_0_15px_#60a5fa] z-[90] pointer-events-none"
+                                key={text.id}
+                                initial={{ opacity: 1, y: 0, scale: 1 }}
+                                animate={{ opacity: 0, y: -60, scale: 1.5 }}
+                                transition={{ duration: 0.8 }}
+                                className={`absolute z-[100] font-black pointer-events-none drop-shadow-md select-none
+                                    ${text.type === 'damage' ? 'text-white text-lg' :
+                                        text.type === 'gold' ? 'text-amber-400 text-xl' :
+                                            text.type === 'mana' ? 'text-blue-400 text-lg' : 'text-emerald-400 text-lg'}`}
+                                style={{
+                                    left: `${text.x * 14.28 + 3}%`,
+                                    top: `${text.y * 25 + 5}%`,
+                                }}
                             >
-                                <div className="w-full h-full bg-white/50 rounded-full animate-ping" />
+                                {text.type === 'gold' ? <span className="flex items-center gap-1"><Coins size={14} /> {text.value}</span> : text.value}
                             </motion.div>
                         ))}
+                    </AnimatePresence>
 
-                        {game.board.map((row, rIdx) =>
-                            row.map((cell, cIdx) => (
-                                <div
-                                    key={`${rIdx}-${cIdx}`}
-                                    onClick={() => handleBoardClick(rIdx, cIdx)}
-                                    className={`rounded-xl border transition-all duration-300 flex items-center justify-center cursor-pointer relative overflow-visible group
+                    {/* VFX: Projectiles */}
+                    {game.projectiles?.map(p => (
+                        <motion.div
+                            key={p.id}
+                            initial={{ left: `${p.sourcePos.x * 14.28 + 7}%`, top: `${p.sourcePos.y * 25 + 12}%`, opacity: 1 }}
+                            animate={{ left: `${p.targetPos.x * 14.28 + 7}%`, top: `${p.targetPos.y * 25 + 12}%`, opacity: 0.5 }}
+                            transition={{ duration: 0.3, ease: "linear" }}
+                            className="absolute w-3 h-3 bg-blue-400 rounded-full shadow-[0_0_15px_#60a5fa] z-[90] pointer-events-none"
+                        >
+                            <div className="w-full h-full bg-white/50 rounded-full animate-ping" />
+                        </motion.div>
+                    ))}
+
+                    {game.board.map((row, rIdx) =>
+                        row.map((cell, cIdx) => (
+                            <div
+                                key={`${rIdx}-${cIdx}`}
+                                onClick={() => handleBoardClick(rIdx, cIdx)}
+                                className={`rounded-xl border transition-all duration-300 flex items-center justify-center cursor-pointer relative overflow-visible group
                                     ${selectedInBoard?.x === cIdx && selectedInBoard?.y === rIdx ? 'border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.3)] z-20 bg-emerald-400/10' : ''}
                                     ${cell && !cell.isDead ? (cell.team === 'PLAYER' ? 'bg-[#1c2e24] border-emerald-500/40 hover:border-emerald-400' : 'bg-[#2a1a1a] border-rose-500/40') : 'bg-white/[0.02] border-white/5 hover:bg-white/5'}`}
-                                >
-                                    {cell && !cell.isDead && (
-                                        <div className="flex flex-col items-center w-full px-1 relative">
-                                            {/* Sell Button Board */}
-                                            {cell.team === 'PLAYER' && selectedInBoard?.x === cIdx && selectedInBoard?.y === rIdx && (
-                                                <div
-                                                    className="absolute -top-3 -right-3 z-50 text-[10px] bg-red-500 hover:bg-red-600 text-white w-5 h-5 flex items-center justify-center rounded-full cursor-pointer shadow-lg animate-bounce"
-                                                    onClick={(e) => { e.stopPropagation(); sellUnit({ x: cIdx, y: rIdx }, 'board'); }}
-                                                    title="Vender (70%)"
-                                                >
-                                                    $
+                            >
+                                {cell && !cell.isDead && (
+                                    <div className="flex flex-col items-center w-full px-1 relative">
+                                        {/* Sell Button Board */}
+                                        {cell.team === 'PLAYER' && selectedInBoard?.x === cIdx && selectedInBoard?.y === rIdx && (
+                                            <div
+                                                className="absolute -top-3 -right-3 z-50 text-[10px] bg-red-500 hover:bg-red-600 text-white w-5 h-5 flex items-center justify-center rounded-full cursor-pointer shadow-lg animate-bounce"
+                                                onClick={(e) => { e.stopPropagation(); sellUnit({ x: cIdx, y: rIdx }, 'board'); }}
+                                                title="Vender (70%)"
+                                            >
+                                                $
+                                            </div>
+                                        )}
+
+                                        {/* Unit Visual & Name Overlay */}
+                                        <div className={`w-28 h-36 rounded-xl flex flex-col items-center justify-center text-lg shadow-2xl relative overflow-hidden border-2
+                                            ${cell.team === 'PLAYER'
+                                                ? 'bg-gradient-to-br from-indigo-900/90 to-purple-900 border-white ring-2 ring-purple-500/30'
+                                                : 'bg-gradient-to-br from-rose-900 to-red-950 border-rose-500/40 grayscale-[0.2]'}`}
+                                        >
+                                            <UnitArt
+                                                name={(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name || '?'}
+                                                className="opacity-95"
+                                            />
+
+                                            {/* Stun Indicator */}
+                                            {cell.isStunned && <div className="absolute inset-0 bg-yellow-400/50 animate-pulse flex items-center justify-center text-3xl">💫</div>}
+
+                                            {/* Shield */}
+                                            {(cell.currentShield || 0) > 0 && <div className="absolute inset-0 border-4 border-white/50 rounded-lg opacity-60 animate-pulse" />}
+
+                                            {/* Name Overlay (Mockup Style) */}
+                                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 py-1 px-0.5 flex justify-center border-t border-white/10">
+                                                <span className={`text-[10px] font-black uppercase truncate max-w-full tracking-wider ${cell.team === 'PLAYER' ? 'text-white' : 'text-rose-200'}`}>
+                                                    {(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Footer: Status Bars + Stars */}
+                                        <div className="flex items-center gap-2 mt-2 w-full justify-center">
+                                            {/* Bars */}
+                                            <div className="flex flex-col gap-1 w-[60px]">
+                                                <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-black/20 shadow-inner">
+                                                    <div className={`h-full ${cell.team === 'PLAYER' ? 'bg-emerald-400' : 'bg-rose-500'}`} style={{ width: `${(cell.currentHp / cell.maxHp) * 100}%` }} />
+                                                </div>
+                                                <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-black/20 shadow-inner">
+                                                    <div className="h-full bg-blue-400" style={{ width: `${cell.currentMana}%` }} />
+                                                </div>
+                                            </div>
+
+                                            {/* Stars (Next to bars) */}
+                                            {cell.stars > 1 && (
+                                                <div className="flex gap-1">
+                                                    {Array(cell.stars).fill(0).map((_, i) => (
+                                                        <div key={i} className="w-2.5 h-2.5 rotate-45 bg-yellow-400 shadow-[0_0_5px_rgba(251,191,36,0.9)] border border-black/20" />
+                                                    ))}
                                                 </div>
                                             )}
-
-                                            {/* Unit Visual & Name Overlay */}
-                                            <div className={`w-28 h-36 rounded-xl flex flex-col items-center justify-center text-lg shadow-2xl relative overflow-hidden border-2
-                                            ${cell.team === 'PLAYER'
-                                                    ? 'bg-gradient-to-br from-indigo-900/90 to-purple-900 border-white ring-2 ring-purple-500/30'
-                                                    : 'bg-gradient-to-br from-rose-900 to-red-950 border-rose-500/40 grayscale-[0.2]'}`}
-                                            >
-                                                <UnitArt
-                                                    name={(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name || '?'}
-                                                    className="opacity-95"
-                                                />
-
-                                                {/* Stun Indicator */}
-                                                {cell.isStunned && <div className="absolute inset-0 bg-yellow-400/50 animate-pulse flex items-center justify-center text-3xl">💫</div>}
-
-                                                {/* Shield */}
-                                                {(cell.currentShield || 0) > 0 && <div className="absolute inset-0 border-4 border-white/50 rounded-lg opacity-60 animate-pulse" />}
-
-                                                {/* Name Overlay (Mockup Style) */}
-                                                <div className="absolute bottom-0 left-0 right-0 bg-black/70 py-1 px-0.5 flex justify-center border-t border-white/10">
-                                                    <span className={`text-[10px] font-black uppercase truncate max-w-full tracking-wider ${cell.team === 'PLAYER' ? 'text-white' : 'text-rose-200'}`}>
-                                                        {(CARD_TEMPLATES.find(t => t.id === cell.templateId) || MONSTER_TEMPLATES.find(t => t.id === cell.templateId))?.name}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Footer: Status Bars + Stars */}
-                                            <div className="flex items-center gap-2 mt-2 w-full justify-center">
-                                                {/* Bars */}
-                                                <div className="flex flex-col gap-1 w-[60px]">
-                                                    <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-black/20 shadow-inner">
-                                                        <div className={`h-full ${cell.team === 'PLAYER' ? 'bg-emerald-400' : 'bg-rose-500'}`} style={{ width: `${(cell.currentHp / cell.maxHp) * 100}%` }} />
-                                                    </div>
-                                                    <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-black/20 shadow-inner">
-                                                        <div className="h-full bg-blue-400" style={{ width: `${cell.currentMana}%` }} />
-                                                    </div>
-                                                </div>
-
-                                                {/* Stars (Next to bars) */}
-                                                {cell.stars > 1 && (
-                                                    <div className="flex gap-1">
-                                                        {Array(cell.stars).fill(0).map((_, i) => (
-                                                            <div key={i} className="w-2.5 h-2.5 rotate-45 bg-yellow-400 shadow-[0_0_5px_rgba(251,191,36,0.9)] border border-black/20" />
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                            ))
-                        )}
-                    </div>
-
-                    {/* Shop Modal / Overlay */}
-                    {isShopOpen && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 translate-y-0 w-[500px] bg-[#1a1a20] rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 animate-in slide-in-from-bottom-5 fade-in duration-300 flex flex-col overflow-hidden">
-                            <div className="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-[#15151a]">
-                                <div className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                                    <ShoppingCart size={14} className="text-green-400" /> Loja do Nexus
-                                </div>
-                                <button onClick={() => setIsShopOpen(false)} className="text-slate-500 hover:text-white transition-colors">✕</button>
+                                    </div>
+                                )}
                             </div>
-                            <div className="p-2 grid grid-cols-1 gap-1 max-h-[400px] overflow-y-auto custom-scrollbar">
-                                {game.shop.map((card, idx) => {
-                                    const tierColors: Record<number, string> = {
-                                        1: 'border-slate-600/50 from-slate-900/90 to-slate-800/90',
-                                        2: 'border-emerald-600/50 from-emerald-900/90 to-emerald-800/90',
-                                        3: 'border-sky-600/50 from-sky-900/90 to-sky-800/90',
-                                        4: 'border-violet-600/50 from-violet-900/90 to-violet-800/90',
-                                        5: 'border-amber-500/50 from-amber-900/90 to-amber-800/90',
-                                    };
-                                    return (
-                                        <div key={idx} onClick={() => buyCard(idx)}
-                                            className={`relative h-20 rounded-lg border flex items-center p-3 gap-3 cursor-pointer transition-all hover:brightness-125 active:scale-[0.98]
-                                            ${card ? `bg-gradient-to-r ${tierColors[card.tier]}` : 'bg-white/5 border-white/5 opacity-30 pointer-events-none'}`}>
-                                            {card ? (
-                                                <>
-                                                    <div className="w-12 h-16 rounded-lg bg-black/30 flex items-center justify-center text-xl font-bold border border-white/10 shadow-inner overflow-hidden">
-                                                        <UnitArt name={card.name} />
-                                                    </div>
-                                                    <div className="flex-1 flex flex-col justify-center">
-                                                        <div className="flex justify-between items-center">
-                                                            <span className="font-bold text-sm text-white">{card.name}</span>
-                                                            <div className="px-2 py-1 rounded bg-black/40 border border-white/10 text-amber-400 font-black text-xs flex items-center gap-1">
-                                                                <Coins size={10} /> {TIER_COSTS[card.tier]}
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-2 text-[10px] text-white/50 mt-0.5">
-                                                            {card.traits.map(t => <span key={t}>{t}</span>)}
-                                                        </div>
-                                                    </div>
-                                                    {/* Ability Mini Info */}
-                                                    <div className="flex flex-col items-end gap-1 text-[9px] text-white/40">
-                                                        <span className="flex items-center gap-1"><Swords size={10} /> {card.ad}</span>
-                                                        <span className="flex items-center gap-1"><Heart size={10} /> {card.hp}</span>
-                                                    </div>
-                                                </>
-                                            ) : <span className="m-auto text-xs font-bold uppercase tracking-widest opacity-50">Vendido</span>}
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                            <div className="p-2 border-t border-white/5 bg-[#15151a] flex gap-2">
-                                <button onClick={rerollShop} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
-                                    <RefreshCw size={12} /> Atualizar (2g)
-                                </button>
-                            </div>
-                        </div>
+                        ))
                     )}
                 </div>
 
-                {/* Bottom Dock */}
-                <div className="h-44 bg-[#15151a] rounded-2xl border border-white/5 flex p-4 gap-4 shadow-2xl z-30 relative">
-
-                    {/* 1. Synergies (Left) */}
-                    <div className="w-48 flex flex-col gap-2 overflow-hidden">
-                        <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest flex items-center gap-2">
-                            <Shield size={12} /> Sinergias
+                {/* Shop Modal / Overlay */}
+                {isShopOpen && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 translate-y-0 w-[500px] bg-[#1a1a20] rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 animate-in slide-in-from-bottom-5 fade-in duration-300 flex flex-col overflow-hidden">
+                        <div className="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-[#15151a]">
+                            <div className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                <ShoppingCart size={14} className="text-green-400" /> Loja do Nexus
+                            </div>
+                            <button onClick={() => setIsShopOpen(false)} className="text-slate-500 hover:text-white transition-colors">✕</button>
                         </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-wrap content-start gap-1.5 align-content-start">
-                            {(() => {
-                                const units = game.board.flatMap(r => r).filter(u => u && u.team === 'PLAYER') as CardInstance[];
-                                const traits: Record<string, number> = {};
-                                const unique = new Set<string>();
-                                units.forEach(u => {
-                                    if (!unique.has(u.templateId)) {
-                                        CARD_TEMPLATES.find(t => t.id === u.templateId)?.traits.forEach(tr => traits[tr] = (traits[tr] || 0) + 1);
-                                        unique.add(u.templateId);
-                                    }
-                                });
-                                const entries = Object.entries(traits);
-                                if (entries.length === 0) return <span className="text-[10px] text-white/20 italic p-2">Nenhuma sinergia ativa</span>;
-
-                                return entries.map(([trait, count]) => (
-                                    <div key={trait} className="group relative">
-                                        <div className={`px-2 py-1 rounded text-[10px] font-bold border transition-colors cursor-help flex items-center gap-1
-                                        ${count >= 2 ? 'bg-purple-500/20 border-purple-500 text-purple-200' : 'bg-white/5 border-white/10 text-slate-500'}`}>
-                                            {trait} <span className="bg-black/30 px-1 rounded text-[9px]">{count}</span>
-                                        </div>
-                                        {/* Tooltip */}
-                                        <div className="absolute bottom-full left-0 mb-2 w-32 bg-black/90 text-white text-[10px] p-2 rounded border border-white/10 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                                            Efeito de {trait} (Exemplo)
-                                        </div>
-                                    </div>
-                                ));
-                            })()}
-                        </div>
-                    </div>
-
-                    <div className="w-[1px] bg-white/10 h-full" />
-
-                    {/* 2. Bench & Shop Toggle (Center) */}
-                    <div className="flex-1 flex flex-col justify-between">
-                        <div className="flex justify-between items-end mb-1">
-                            <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest pl-1">Banco de Reservas</div>
-                            {/* Shop Toggle Button */}
-                            <button
-                                onClick={() => setIsShopOpen(!isShopOpen)}
-                                className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg
-                             ${isShopOpen ? 'bg-green-500 text-black shadow-green-500/40 hover:bg-green-400' : 'bg-slate-700 text-slate-200 hover:bg-slate-600 border border-white/5'}`}
-                            >
-                                <ShoppingCart size={12} /> {isShopOpen ? 'Fechar Loja' : 'Abrir Loja'}
-                            </button>
-                        </div>
-
-                        <div className="flex-1 bg-black/20 rounded-xl border border-white/5 p-2 flex gap-2">
-                            {game.bench.map((cell, idx) => {
-                                const template = cell ? CARD_TEMPLATES.find(t => t.id === cell.templateId) : null;
+                        <div className="p-2 grid grid-cols-1 gap-1 max-h-[400px] overflow-y-auto custom-scrollbar">
+                            {game.shop.map((card, idx) => {
                                 const tierColors: Record<number, string> = {
-                                    1: 'border-slate-600 from-slate-900 to-slate-800 shadow-slate-500/20 text-slate-200',
-                                    2: 'border-emerald-600 from-emerald-900 to-emerald-800 shadow-emerald-500/20 text-emerald-200',
-                                    3: 'border-sky-600 from-sky-900 to-sky-800 shadow-sky-500/20 text-sky-200',
-                                    4: 'border-violet-600 from-violet-900 to-violet-800 shadow-violet-500/20 text-violet-200',
-                                    5: 'border-amber-500 from-amber-900 to-amber-800 shadow-amber-500/20 text-amber-200',
+                                    1: 'border-slate-600/50 from-slate-900/90 to-slate-800/90',
+                                    2: 'border-emerald-600/50 from-emerald-900/90 to-emerald-800/90',
+                                    3: 'border-sky-600/50 from-sky-900/90 to-sky-800/90',
+                                    4: 'border-violet-600/50 from-violet-900/90 to-violet-800/90',
+                                    5: 'border-amber-500/50 from-amber-900/90 to-amber-800/90',
                                 };
-
                                 return (
-                                    <div
-                                        key={idx}
-                                        onClick={() => handleBenchClick(idx)}
-                                        className={`flex-1 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group
-                                        ${selectedInBench === idx ? 'border-amber-400 bg-amber-400/10' :
-                                                cell && template ? `bg-gradient-to-br ${tierColors[template.tier]}` : 'bg-white/[0.03] border-white/5 hover:bg-white/5'}`}
-                                    >
-                                        {cell && template ? (
+                                    <div key={idx} onClick={() => buyCard(idx)}
+                                        className={`relative h-20 rounded-lg border flex items-center p-3 gap-3 cursor-pointer transition-all hover:brightness-125 active:scale-[0.98]
+                                            ${card ? `bg-gradient-to-r ${tierColors[card.tier]}` : 'bg-white/5 border-white/5 opacity-30 pointer-events-none'}`}>
+                                        {card ? (
                                             <>
-                                                <div className="w-20 h-28 rounded-xl flex items-center justify-center text-xl mb-1 drop-shadow-md bg-black/20 overflow-hidden ring-2 ring-white/10 group-hover:ring-white/30 transition-all">
-                                                    <UnitArt name={template.name} />
+                                                <div className="w-12 h-16 rounded-lg bg-black/30 flex items-center justify-center text-xl font-bold border border-white/10 shadow-inner overflow-hidden">
+                                                    <UnitArt name={card.name} />
                                                 </div>
-                                                <span className="text-[9px] font-bold uppercase truncate max-w-[50px]">{template.name}</span>
-                                                <div className="flex gap-0.5 mt-1">
-                                                    {Array(cell.stars).fill(0).map((_, i) => (
-                                                        <div key={i} className="w-1 h-1 rounded-full bg-amber-400 shadow-[0_0_2px_rgba(251,191,36,0.8)]" />
-                                                    ))}
-                                                </div>
-                                                {/* Sell Button Bench */}
-                                                {selectedInBench === idx && (
-                                                    <div
-                                                        className="absolute -top-1 -right-1 z-50 text-[8px] bg-red-500 hover:bg-red-600 text-white w-4 h-4 flex items-center justify-center rounded-bl-lg cursor-pointer"
-                                                        onClick={(e) => { e.stopPropagation(); sellUnit(idx, 'bench'); }}
-                                                    >
-                                                        $
+                                                <div className="flex-1 flex flex-col justify-center">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="font-bold text-sm text-white">{card.name}</span>
+                                                        <div className="px-2 py-1 rounded bg-black/40 border border-white/10 text-amber-400 font-black text-xs flex items-center gap-1">
+                                                            <Coins size={10} /> {TIER_COSTS[card.tier]}
+                                                        </div>
                                                     </div>
-                                                )}
+                                                    <div className="flex gap-2 text-[10px] text-white/50 mt-0.5">
+                                                        {card.traits.map(t => <span key={t}>{t}</span>)}
+                                                    </div>
+                                                </div>
+                                                {/* Ability Mini Info */}
+                                                <div className="flex flex-col items-end gap-1 text-[9px] text-white/40">
+                                                    <span className="flex items-center gap-1"><Swords size={10} /> {card.ad}</span>
+                                                    <span className="flex items-center gap-1"><Heart size={10} /> {card.hp}</span>
+                                                </div>
                                             </>
-                                        ) : <div className="text-white/5 text-[8px] font-mono">{idx + 1}</div>}
+                                        ) : <span className="m-auto text-xs font-bold uppercase tracking-widest opacity-50">Vendido</span>}
                                     </div>
                                 )
                             })}
                         </div>
+                        <div className="p-2 border-t border-white/5 bg-[#15151a] flex gap-2">
+                            <button onClick={rerollShop} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors">
+                                <RefreshCw size={12} /> Atualizar (2g)
+                            </button>
+                        </div>
                     </div>
+                )}
+            </div>
 
-                    <div className="w-[1px] bg-white/10 h-full" />
+            {/* Bottom Dock */}
+            <div className="h-44 bg-[#15151a] rounded-2xl border border-white/5 flex p-4 gap-4 shadow-2xl z-30 relative">
 
-                    {/* 3. Actions (Right) */}
-                    <div className="w-40 flex flex-col gap-2">
+                {/* 1. Synergies (Left) */}
+                <div className="w-48 flex flex-col gap-2 overflow-hidden">
+                    <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest flex items-center gap-2">
+                        <Shield size={12} /> Sinergias
+                    </div>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-wrap content-start gap-1.5 align-content-start">
+                        {(() => {
+                            const units = game.board.flatMap(r => r).filter(u => u && u.team === 'PLAYER') as CardInstance[];
+                            const traits: Record<string, number> = {};
+                            const unique = new Set<string>();
+                            units.forEach(u => {
+                                if (!unique.has(u.templateId)) {
+                                    CARD_TEMPLATES.find(t => t.id === u.templateId)?.traits.forEach(tr => traits[tr] = (traits[tr] || 0) + 1);
+                                    unique.add(u.templateId);
+                                }
+                            });
+                            const entries = Object.entries(traits);
+                            if (entries.length === 0) return <span className="text-[10px] text-white/20 italic p-2">Nenhuma sinergia ativa</span>;
+
+                            return entries.map(([trait, count]) => (
+                                <div key={trait} className="group relative">
+                                    <div className={`px-2 py-1 rounded text-[10px] font-bold border transition-colors cursor-help flex items-center gap-1
+                                        ${count >= 2 ? 'bg-purple-500/20 border-purple-500 text-purple-200' : 'bg-white/5 border-white/10 text-slate-500'}`}>
+                                        {trait} <span className="bg-black/30 px-1 rounded text-[9px]">{count}</span>
+                                    </div>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-0 mb-2 w-32 bg-black/90 text-white text-[10px] p-2 rounded border border-white/10 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                                        Efeito de {trait} (Exemplo)
+                                    </div>
+                                </div>
+                            ));
+                        })()}
+                    </div>
+                </div>
+
+                <div className="w-[1px] bg-white/10 h-full" />
+
+                {/* 2. Bench & Shop Toggle (Center) */}
+                <div className="flex-1 flex flex-col justify-between">
+                    <div className="flex justify-between items-end mb-1">
+                        <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest pl-1">Banco de Reservas</div>
+                        {/* Shop Toggle Button */}
                         <button
-                            onClick={buyXP}
-                            className="h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl font-bold flex items-center justify-between px-4 hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-blue-500/20 text-white group"
+                            onClick={() => setIsShopOpen(!isShopOpen)}
+                            className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg
+                             ${isShopOpen ? 'bg-green-500 text-black shadow-green-500/40 hover:bg-green-400' : 'bg-slate-700 text-slate-200 hover:bg-slate-600 border border-white/5'}`}
                         >
-                            <div className="flex flex-col items-start leading-none gap-1">
-                                <span className="text-[10px] opacity-70">Comprar XP</span>
-                                <span className="text-sm font-black text-blue-100">+4 XP</span>
-                            </div>
-                            <div className="bg-black/20 p-2 rounded-lg group-hover:bg-black/30 transition-colors">
-                                <ArrowUpCircle size={16} />
-                            </div>
+                            <ShoppingCart size={12} /> {isShopOpen ? 'Fechar Loja' : 'Abrir Loja'}
                         </button>
-
-                        {(selectedInBench !== null || selectedInBoard !== null) ? (
-                            <button
-                                onClick={() => {
-                                    if (selectedInBench !== null) sellUnit(selectedInBench, 'bench');
-                                    else if (selectedInBoard !== null) sellUnit(selectedInBoard, 'board');
-                                }}
-                                className="h-10 bg-rose-500/20 border border-rose-500/50 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-rose-500/30 active:scale-95 transition-all text-rose-400 group animate-in slide-in-from-right-2"
-                            >
-                                <ShoppingCart size={14} className="group-hover:rotate-12 transition-transform" />
-                                <span className="text-xs uppercase tracking-tight">Vender Unidade</span>
-                            </button>
-                        ) : (
-                            <button
-                                onClick={rerollShop}
-                                className="h-10 bg-[#252530] border border-white/10 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-white/10 active:scale-95 transition-all text-slate-300 hover:text-white"
-                            >
-                                <RefreshCw size={14} />
-                                <span className="text-xs uppercase tracking-wide">Atualizar</span>
-                                <span className="text-[10px] bg-black/40 px-1.5 rounded text-amber-500 font-black">2g</span>
-                            </button>
-                        )}
                     </div>
+
+                    <div className="flex-1 bg-black/20 rounded-xl border border-white/5 p-2 flex gap-2">
+                        {game.bench.map((cell, idx) => {
+                            const template = cell ? CARD_TEMPLATES.find(t => t.id === cell.templateId) : null;
+                            const tierColors: Record<number, string> = {
+                                1: 'border-slate-600 from-slate-900 to-slate-800 shadow-slate-500/20 text-slate-200',
+                                2: 'border-emerald-600 from-emerald-900 to-emerald-800 shadow-emerald-500/20 text-emerald-200',
+                                3: 'border-sky-600 from-sky-900 to-sky-800 shadow-sky-500/20 text-sky-200',
+                                4: 'border-violet-600 from-violet-900 to-violet-800 shadow-violet-500/20 text-violet-200',
+                                5: 'border-amber-500 from-amber-900 to-amber-800 shadow-amber-500/20 text-amber-200',
+                            };
+
+                            return (
+                                <div
+                                    key={idx}
+                                    onClick={() => handleBenchClick(idx)}
+                                    className={`flex-1 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group
+                                        ${selectedInBench === idx ? 'border-amber-400 bg-amber-400/10' :
+                                            cell && template ? `bg-gradient-to-br ${tierColors[template.tier]}` : 'bg-white/[0.03] border-white/5 hover:bg-white/5'}`}
+                                >
+                                    {cell && template ? (
+                                        <>
+                                            <div className="w-20 h-28 rounded-xl flex items-center justify-center text-xl mb-1 drop-shadow-md bg-black/20 overflow-hidden ring-2 ring-white/10 group-hover:ring-white/30 transition-all">
+                                                <UnitArt name={template.name} />
+                                            </div>
+                                            <span className="text-[9px] font-bold uppercase truncate max-w-[50px]">{template.name}</span>
+                                            <div className="flex gap-0.5 mt-1">
+                                                {Array(cell.stars).fill(0).map((_, i) => (
+                                                    <div key={i} className="w-1 h-1 rounded-full bg-amber-400 shadow-[0_0_2px_rgba(251,191,36,0.8)]" />
+                                                ))}
+                                            </div>
+                                            {/* Sell Button Bench */}
+                                            {selectedInBench === idx && (
+                                                <div
+                                                    className="absolute -top-1 -right-1 z-50 text-[8px] bg-red-500 hover:bg-red-600 text-white w-4 h-4 flex items-center justify-center rounded-bl-lg cursor-pointer"
+                                                    onClick={(e) => { e.stopPropagation(); sellUnit(idx, 'bench'); }}
+                                                >
+                                                    $
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : <div className="text-white/5 text-[8px] font-mono">{idx + 1}</div>}
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                <div className="w-[1px] bg-white/10 h-full" />
+
+                {/* 3. Actions (Right) */}
+                <div className="w-40 flex flex-col gap-2">
+                    <button
+                        onClick={buyXP}
+                        className="h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl font-bold flex items-center justify-between px-4 hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-blue-500/20 text-white group"
+                    >
+                        <div className="flex flex-col items-start leading-none gap-1">
+                            <span className="text-[10px] opacity-70">Comprar XP</span>
+                            <span className="text-sm font-black text-blue-100">+4 XP</span>
+                        </div>
+                        <div className="bg-black/20 p-2 rounded-lg group-hover:bg-black/30 transition-colors">
+                            <ArrowUpCircle size={16} />
+                        </div>
+                    </button>
+
+                    {(selectedInBench !== null || selectedInBoard !== null) ? (
+                        <button
+                            onClick={() => {
+                                if (selectedInBench !== null) sellUnit(selectedInBench, 'bench');
+                                else if (selectedInBoard !== null) sellUnit(selectedInBoard, 'board');
+                            }}
+                            className="h-10 bg-rose-500/20 border border-rose-500/50 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-rose-500/30 active:scale-95 transition-all text-rose-400 group animate-in slide-in-from-right-2"
+                        >
+                            <ShoppingCart size={14} className="group-hover:rotate-12 transition-transform" />
+                            <span className="text-xs uppercase tracking-tight">Vender Unidade</span>
+                        </button>
+                    ) : (
+                        <button
+                            onClick={rerollShop}
+                            className="h-10 bg-[#252530] border border-white/10 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-white/10 active:scale-95 transition-all text-slate-300 hover:text-white"
+                        >
+                            <RefreshCw size={14} />
+                            <span className="text-xs uppercase tracking-wide">Atualizar</span>
+                            <span className="text-[10px] bg-black/40 px-1.5 rounded text-amber-500 font-black">2g</span>
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
