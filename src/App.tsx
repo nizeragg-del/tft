@@ -713,6 +713,8 @@ const App: React.FC = () => {
                 let roundGoldGain = 0;
 
                 for (const unit of units) {
+                    if (unit.isDead) continue; // FIX: Prevent dead units from acting
+
                     // Stun Logic
                     if (unit.isStunned) {
                         unit.stunDuration = (unit.stunDuration || 0) - 1;
