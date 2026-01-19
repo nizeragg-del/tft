@@ -88,12 +88,27 @@ export const BattlefieldHUD: React.FC<BattlefieldHUDProps> = ({ user, opponent, 
                     Rodada {game.round}
                 </div>
 
-                <button
-                    onClick={onSignOut}
-                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 text-slate-400 hover:text-white"
-                >
-                    <LogOut size={18} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => {
+                            if (window.confirm('Tem certeza que deseja desistir da partida?')) {
+                                (window as any).surrender();
+                            }
+                        }}
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-rose-500/10 transition-colors border border-white/10 text-slate-400 hover:text-rose-500 group"
+                        title="Desistir"
+                    >
+                        <Zap size={18} className="rotate-12 group-hover:rotate-0 transition-transform" />
+                    </button>
+
+                    <button
+                        onClick={onSignOut}
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 text-slate-400 hover:text-white"
+                        title="Sair"
+                    >
+                        <LogOut size={18} />
+                    </button>
+                </div>
             </div>
         </header>
     );

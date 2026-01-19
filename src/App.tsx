@@ -194,6 +194,12 @@ const App: React.FC = () => {
         await supabase.auth.signOut();
     };
 
+    // Expor função de rendição globalmente para o HUD
+    useEffect(() => {
+        (window as any).surrender = () => handleMatchEnd(false);
+        return () => { delete (window as any).surrender; };
+    }, [matchId, opponent]);
+
     const handleMatchFound = (id: string, opp: { id: string; username: string; elo: number }) => {
         setMatchId(id);
         if (opp.id === 'bot-id') {
