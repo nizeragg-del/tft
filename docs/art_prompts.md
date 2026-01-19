@@ -14,20 +14,20 @@ Para manter a consistência, adicione este sufixo a todos os prompts:
 **Ranger**: An archer with a bow made of solidified wind and light, emerald green energy, feathers floating around.
 **Scrap**: A bulky mechanical golem made of repurposed junk and heavy iron, emitting orange steam and sparks.
 **Acolyte**: A priest in white and gold cybernetic robes, channeling a sphere of pure healing light between their hands.
-- **Drone**: A high-tech surveillance drone with multiple laser lenses and sleek metallic winglets, firing twin blue plasma bolts.
+**Drone**: A high-tech surveillance drone with multiple laser lenses and sleek metallic winglets, firing twin blue plasma bolts.
 
 ## 💎 Tier 2 (2g)
-- **Oracle**: A mystic seer with a blindfold made of floating data particles, holding an arcane floating orb, purple nebula effects.
-- **Brawler**: A massive four-armed warrior with rock-like skin and glowing magma cracks, slamming fists into the ground.
-- **Shadowblade**: A ninja-like silhouette made of pure dark void energy, holding a translucent violet katana, phasing through reality.
-- **Sentinel**: An angelic guardian in heavy white ceramic armor with golden wings, a massive crystalline halberd, celestial glow.
-- **Blaster**: A heavy-duty commando with multiple shoulder-mounted missile pods and a glowing plasma cannon, explosive background.
-- **Nomad**: A wandering swordsman with a tattered cloak and a legendary blade that leaves trails of wind and cherry blossoms.
+**Oracle**: A mystic seer with a blindfold made of floating data particles, holding an arcane floating orb, purple nebula effects.
+**Brawler**: A massive four-armed warrior with rock-like skin and glowing magma cracks, slamming fists into the ground.
+**Shadowblade**: A ninja-like silhouette made of pure dark void energy, holding a translucent violet katana, phasing through reality.
+**Sentinel**: An angelic guardian in heavy white ceramic armor with golden wings, a massive crystalline halberd, celestial glow.
+**Blaster**: A heavy-duty commando with multiple shoulder-mounted missile pods and a glowing plasma cannon, explosive background.
+**Nomad**: A wandering swordsman with a tattered cloak and a legendary blade that leaves trails of wind and cherry blossoms.
 
 ## 💎 Tier 3 (3g)
-- **Sniper**: A master marksman on a high vantage point with a long-range railgun rifle, focusing through a digital HUD interface.
-- **Void Terror**: A monstrous chogath-style creature with multiple mouths and void-purple spikes, devouring energy portals.
-- **Flux Mage**: A chronomancer manipulating gears of time and golden sand, freezing a falling clock in mid-air.
+**Sniper**: A master marksman on a high vantage point with a long-range railgun rifle, focusing through a digital HUD interface.
+**Void Terror**: A monstrous chogath-style creature with multiple mouths and void-purple spikes, devouring energy portals.
+  **Flux Mage**: A chronomancer manipulating gears of time and golden sand, freezing a falling clock in mid-air.
 - **Warlord**: A brutal conqueror in spiked onyx armor, dual-wielding massive axes that glow with red thermal energy.
 - **Nanomancer**: A scientist surrounded by swarms of microscopic glowing nanobots that form a protective and offensive aura.
 - **Skyguardian**: A winged knight flying through a thunderstorm, holding a shield made of lightning bolts and holy light.

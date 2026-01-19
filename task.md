@@ -55,7 +55,9 @@
 # Sinergia e Visuais (Ativo)
 - [ ] Implementar `calculateSynergyBonuses` em startCombat
 - [ ] Aplicar Bônus de Sinergia Ativa (Stats)
-- [ ] Implementar Texto Flutuante para Habilidades/Críticos
+- [x] **IA de Combate: Refatoração de Pathfinding e Inteligência de Ataque**
+- [x] **Feedback Visual: Números de Dano Flutuantes (Floating Text)**
+- [x] **Projetéis: Sistema de Tiro para Unidades Ranged**
 - [ ] Polimento Visual para Ativação de Habilidades
 
 # Expansão de Conteúdo (Set 1)

@@ -44,6 +44,24 @@ export interface CardInstance {
     isDead?: boolean;
     ad?: number; // Attack Damage (for synergy bonuses)
     as?: number; // Attack Speed (for synergy bonuses)
+    lastAttackTime?: number; // [NEW]
+}
+
+export interface FloatingText {
+    id: string;
+    value: string;
+    type: 'damage' | 'heal' | 'mana' | 'gold';
+    x: number;
+    y: number;
+    life: number;
+}
+
+export interface Projectile {
+    id: string;
+    sourcePos: { x: number, y: number };
+    targetPos: { x: number, y: number };
+    startTime: number;
+    duration: number;
 }
 
 export interface GameState {
@@ -57,5 +75,7 @@ export interface GameState {
     round: number;
     phase: GamePhase;
     timer: number;
-    graveyard: CardInstance[]; // Stores units that died and were overwritten on board
+    graveyard: CardInstance[];
+    floatingTexts: FloatingText[]; // [NEW]
+    projectiles: Projectile[]; // [NEW]
 }
