@@ -18,6 +18,8 @@ export interface User {
     elo: number;
     wins: number;
     losses: number;
+    banned_until?: string | null;
+    surrender_count_week?: number;
 }
 
 export interface CardTemplate {

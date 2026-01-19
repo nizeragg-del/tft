@@ -60,6 +60,7 @@ const App: React.FC = () => {
         bench: (CardInstance | null)[];
     } | null>(null);
     const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+    const [currentView, setCurrentView] = useState<'lobby' | 'leaderboard' | 'store' | 'profile' | 'settings'>('lobby');
     const channelRef = useRef<any>(null);
     const combatIntervalRef = useRef<any>(null);
     const combatRngRef = useRef<any>(null);
@@ -585,20 +586,59 @@ const App: React.FC = () => {
 
     const handleMatchEnd = async (isWinner: boolean) => {
         if (!user || !opponent) return;
+
+        // Caso de Desistência/Fim contra IA
         if (opponent.id === 'bot-id') {
-            alert(isWinner ? "VITÓRIA!" : "DERROTA!");
+            if (!isWinner) alert("Você desistiu/perdeu para a IA. Sem penalidades no modo treino.");
+            else alert("VITÓRIA!");
             setMatchId(null);
             setOpponent(null);
             return;
         }
+
         if (!matchId) return;
-        const { error } = await supabase.from('matches').update({ status: 'finished', winner_id: isWinner ? user.id : opponent.id }).eq('id', matchId);
-        if (!error) {
-            alert(isWinner ? "VICTORY!" : "DEFEAT!");
-            setMatchId(null);
-            setOpponent(null);
-            fetchUserProfile(user.id);
+
+        // Se o jogador perdeu (ou desistiu), aplicar penalidades se for PvP
+        if (!isWinner) {
+            const now = new Date();
+            const bannedUntil = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutos
+            const surrenderCount = (user.surrender_count_week || 0) + 1;
+
+            let finalBannedUntil = bannedUntil.toISOString();
+
+            // Penalidade de 7 dias se atingir 10 desistências na semana
+            if (surrenderCount >= 10) {
+                const severeBan = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                finalBannedUntil = severeBan.toISOString();
+                alert("PUNIÇÃO SEVERA: 10 desistências atingidas. Banido do PvP por 7 dias!");
+            } else {
+                alert("Você desistiu de uma partida PvP. Banido do matchmaking por 10 minutos.");
+            }
+
+            await supabase.from('users').update({
+                banned_until: finalBannedUntil,
+                surrender_count_week: surrenderCount,
+                losses: user.losses + 1,
+                elo: Math.max(0, user.elo - 20)
+            }).eq('id', user.id);
+        } else {
+            // Vitória normal
+            await supabase.from('matches').update({
+                status: 'finished',
+                winner_id: user.id
+            }).eq('id', matchId);
+
+            await supabase.from('users').update({
+                wins: user.wins + 1,
+                elo: user.elo + 20
+            }).eq('id', user.id);
+
+            alert("VITÓRIA!");
         }
+
+        setMatchId(null);
+        setOpponent(null);
+        fetchUserProfile(user.id);
     };
 
     useEffect(() => {
