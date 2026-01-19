@@ -703,11 +703,28 @@ const App: React.FC = () => {
 
                 const newBoard = prev.board.map(r => [...r]);
                 const units: CardInstance[] = [];
+                const playerTraits: Record<string, number> = {};
+                const enemyTraits: Record<string, number> = {};
+
+                // Helper to count traits
+                const countTraits = (teamUnits: CardInstance[], targetMap: Record<string, number>) => {
+                    const unique = new Set<string>();
+                    teamUnits.forEach(u => {
+                        if (!unique.has(u.templateId)) {
+                            CARD_TEMPLATES.find(t => t.id === u.templateId)?.traits.forEach(tr => targetMap[tr] = (targetMap[tr] || 0) + 1);
+                            unique.add(u.templateId);
+                        }
+                    });
+                };
+
                 for (const row of newBoard) {
                     for (const cell of row) {
                         if (cell && !cell.isDead) units.push(cell);
                     }
                 }
+
+                countTraits(units.filter(u => u.team === 'PLAYER'), playerTraits);
+                countTraits(units.filter(u => u.team === 'ENEMY'), enemyTraits);
 
                 const newGraveyard = [...prev.graveyard];
                 let roundGoldGain = 0;
@@ -777,15 +794,35 @@ const App: React.FC = () => {
 
                             // Apply Damage
                             const enemy = nearestEnemy;
-                            if (enemy.currentShield && enemy.currentShield > 0) {
-                                if (enemy.currentShield >= dmg) enemy.currentShield -= dmg;
-                                else {
-                                    const rem = dmg - enemy.currentShield;
-                                    enemy.currentShield = 0;
-                                    enemy.currentHp -= rem;
+                            const traits = unit.team === 'PLAYER' ? playerTraits : enemyTraits;
+
+                            // Synergy: Blademaster (Double Attack)
+                            let hits = 1;
+                            if (traits['Blademaster'] && ((traits['Blademaster'] >= 2 && Math.random() < 0.3) || (traits['Blademaster'] >= 4 && Math.random() < 0.5))) {
+                                hits = 2;
+                                newFloatingTexts.push({ id: Math.random().toString(), value: 'Double!', type: 'mana', x: unit.position.x, y: unit.position.y - 0.5, life: 2 });
+                            }
+
+                            for (let h = 0; h < hits; h++) {
+                                if (enemy.currentShield && enemy.currentShield > 0) {
+                                    if (enemy.currentShield >= dmg) enemy.currentShield -= dmg;
+                                    else {
+                                        const rem = dmg - enemy.currentShield;
+                                        enemy.currentShield = 0;
+                                        enemy.currentHp -= rem;
+                                    }
+                                } else {
+                                    enemy.currentHp -= dmg;
                                 }
-                            } else {
-                                enemy.currentHp -= dmg;
+
+                                // Synergy: Celestial (Lifesteal)
+                                if (traits['Celestial'] && traits['Celestial'] >= 2) {
+                                    const heal = Math.floor(dmg * 0.5);
+                                    unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+                                    if (Math.random() < 0.3) { // Visual clutter reduction
+                                        newFloatingTexts.push({ id: Math.random().toString(), value: `+${heal}`, type: 'heal', x: unit.position.x, y: unit.position.y, life: 2 });
+                                    }
+                                }
                             }
 
                             unit.currentMana = Math.min(template.manaMax, unit.currentMana + 10);
@@ -793,7 +830,7 @@ const App: React.FC = () => {
                             // VFX: Floating Damage
                             newFloatingTexts.push({
                                 id: Math.random().toString(),
-                                value: dmg.toString(),
+                                value: hits > 1 ? `${dmg}x2` : dmg.toString(),
                                 type: 'damage',
                                 x: enemy.position.x,
                                 y: enemy.position.y,
@@ -829,15 +866,22 @@ const App: React.FC = () => {
                             }
                         }
                     } else {
-                        // Action: Move (Better Pathing)
+                        // Action: Move (Smart Pathing with Side-Stepping)
                         const dx = Math.sign(nearestEnemy.position.x - unit.position.x);
                         const dy = Math.sign(nearestEnemy.position.y - unit.position.y);
 
+                        // Prioritize moves: 1. Optimal Diagonal/Direct 2. Cardinal towards target 3. Flanking/Side-step
+                        // This prevents units from getting stuck behind allies (the "Dumb Minion" fix)
                         const candidates = [
-                            { x: unit.position.x + dx, y: unit.position.y + dy },
-                            { x: unit.position.x + dx, y: unit.position.y },
-                            { x: unit.position.x, y: unit.position.y + dy }
-                        ];
+                            { x: unit.position.x + dx, y: unit.position.y + dy }, // Direct
+                            { x: unit.position.x + dx, y: unit.position.y },      // Cardinal X
+                            { x: unit.position.x, y: unit.position.y + dy },      // Cardinal Y
+                            // Flanking candidates (try to move around)
+                            { x: unit.position.x + dx, y: unit.position.y + (dy === 0 ? 1 : 0) }, // Side one way
+                            { x: unit.position.x + dx, y: unit.position.y + (dy === 0 ? -1 : 0) }, // Side other way
+                            { x: unit.position.x + (dx === 0 ? 1 : 0), y: unit.position.y + dy },
+                            { x: unit.position.x + (dx === 0 ? -1 : 0), y: unit.position.y + dy }
+                        ].filter(c => c.x !== unit.position.x || c.y !== unit.position.y); // Remove self-pos
 
                         for (const cand of candidates) {
                             if (cand.x >= 0 && cand.x < 7 && cand.y >= 0 && cand.y < 4 && !newBoard[cand.y][cand.x]) {

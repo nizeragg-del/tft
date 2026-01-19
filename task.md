@@ -53,10 +53,12 @@
 - [x] Implementar Movimentação Tabuleiro-para-Banco (Troca/Retorno)
 
 # Sinergia e Visuais (Ativo)
-- [ ] Implementar `calculateSynergyBonuses` em startCombat
-- [ ] Aplicar Bônus de Sinergia Ativa (Stats)
+- [x] Implementar `calculateSynergyBonuses` em startCombat
+- [x] Aplicar Bônus de Sinergia Ativa (Stats)
+- [x] Aplicar Sinergias Dinâmicas (Celestial/Blademaster)
 - [x] **IA de Combate: Refatoração de Pathfinding e Inteligência de Ataque**
 - [x] **Correção: Unidades mortas agindo e travando combate**
+- [x] **Melhoria: IA de Movimento (Side-stepping / Flanking)**
 - [x] **Feedback Visual: Números de Dano Flutuantes (Floating Text)**
 - [x] **Projetéis: Sistema de Tiro para Unidades Ranged**
 - [ ] Polimento Visual para Ativação de Habilidades
