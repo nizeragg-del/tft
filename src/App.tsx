@@ -258,9 +258,11 @@ const App: React.FC = () => {
                             });
                         }
                         return startCombat(prev, seed);
-                    } else {
-                        return { ...prev, timer: 0 };
+                    } else if (prev.phase === 'COMBAT') {
+                        // Forçar fim de combate se o tempo acabar
+                        return endCombat(prev);
                     }
+                    return { ...prev, timer: 0 };
                 }
                 return { ...prev, timer: prev.timer - 1 };
             });
