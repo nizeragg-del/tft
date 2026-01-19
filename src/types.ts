@@ -1,6 +1,15 @@
 export type Tier = 1 | 2 | 3 | 4 | 5;
 export type GamePhase = 'PLANNING' | 'COMBAT';
 export type Team = 'PLAYER' | 'ENEMY';
+export type AugmentType = 'COMBAT' | 'ECON' | 'UTILITY';
+
+export interface Augment {
+    id: string;
+    name: string;
+    description: string;
+    type: AugmentType;
+    tier: 1 | 2 | 3;
+}
 
 export interface User {
     id: string;
@@ -80,4 +89,6 @@ export interface GameState {
     graveyard: CardInstance[];
     floatingTexts: FloatingText[]; // [NEW]
     projectiles: Projectile[]; // [NEW]
+    activeAugments: string[]; // [NEW]
+    augmentSelection: Augment[] | null; // [NEW]
 }
