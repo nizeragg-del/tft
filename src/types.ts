@@ -45,6 +45,8 @@ export interface CardInstance {
     ad?: number; // Attack Damage (for synergy bonuses)
     as?: number; // Attack Speed (for synergy bonuses)
     lastAttackTime?: number; // [NEW]
+    currentAnimation?: 'jump' | 'shake' | 'spin' | 'pulse'; // [NEW]
+    animationTimer?: number; // [NEW] Frames remaining for animation
 }
 
 export interface FloatingText {

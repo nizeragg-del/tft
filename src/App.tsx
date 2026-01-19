@@ -279,12 +279,8 @@ const App: React.FC = () => {
                         }
                         return startCombat(prev, seed);
                     } else {
-                        const nextState = endCombat(prev);
-                        if (opponent?.id === 'bot-id') {
-                            // After combat ends, bot prepares for next round
-                            // This will be called via useEffect on round change
-                        }
-                        return nextState;
+                        // Prevent auto-end on timer, keep combat going until death
+                        return { ...prev, timer: 0 };
                     }
                 }
                 return { ...prev, timer: prev.timer - 1 };
@@ -739,6 +735,12 @@ const App: React.FC = () => {
                         continue;
                     }
 
+                    // Animation Timer Logic
+                    if (unit.animationTimer && unit.animationTimer > 0) {
+                        unit.animationTimer--;
+                        if (unit.animationTimer <= 0) unit.currentAnimation = undefined;
+                    }
+
                     const template = CARD_TEMPLATES.find(t => t.id === unit.templateId) || MONSTER_TEMPLATES.find(t => t.id === unit.templateId);
                     if (!template) continue;
 
@@ -772,6 +774,19 @@ const App: React.FC = () => {
                                 setGame,
                                 rng: () => Math.random()
                             });
+
+                            // Ability Animation Trigger
+                            const traits = playerTraits; // Note: simplified for player, ideally check unit team
+                            let anim: 'jump' | 'shake' | 'spin' | 'pulse' = 'pulse';
+
+                            // Simple mapping based on unit names (can use traits later)
+                            if (['Stinger', 'Shadowblade', 'Nomad', 'Phantom'].includes(template.name)) anim = 'jump';
+                            else if (['Vanguard', 'Titan', 'Scrap', 'Brawler'].includes(template.name)) anim = 'shake';
+                            else if (['Oracle', 'Stormcaller', 'Flux Mage'].includes(template.name)) anim = 'spin';
+
+                            unit.currentAnimation = anim;
+                            unit.animationTimer = 5; // ~5 combat ticks
+
                             newFloatingTexts.push({
                                 id: Math.random().toString(),
                                 value: 'ULT!',
@@ -888,14 +903,15 @@ const App: React.FC = () => {
                                 newBoard[unit.position.y][unit.position.x] = null;
                                 const movedUnit = { ...unit, position: { x: cand.x, y: cand.y } };
                                 newBoard[cand.y][cand.x] = movedUnit;
-                                Object.assign(unit, movedUnit); // Update reference in local array
+                                Object.assign(unit, movedUnit);
                                 break;
                             }
                         }
                     }
-                }
+                } // End of units loop
 
-                return {
+                // Explicit return state
+                const nextState: GameState = {
                     ...prev,
                     board: newBoard,
                     gold: prev.gold + roundGoldGain,
@@ -903,6 +919,15 @@ const App: React.FC = () => {
                     projectiles: newProjectiles,
                     graveyard: newGraveyard
                 };
+
+                // Check for combat end (Team Wipe)
+                const livingPlayerUnits = units.filter(u => u.team === 'PLAYER' && !u.isDead).length;
+                const livingEnemyUnits = units.filter(u => u.team === 'ENEMY' && !u.isDead).length;
+
+                if (livingPlayerUnits === 0 || livingEnemyUnits === 0) {
+                    return endCombat(nextState);
+                }
+                return nextState;
             });
         }, 200);
 
@@ -1429,8 +1454,9 @@ const App: React.FC = () => {
                             <div
                                 key={`${rIdx}-${cIdx}`}
                                 onClick={() => handleBoardClick(rIdx, cIdx)}
+                                style={{ zIndex: rIdx * 10 + (selectedInBoard?.x === cIdx && selectedInBoard?.y === rIdx ? 50 : 0) }}
                                 className={`rounded-xl border transition-all duration-300 flex items-center justify-center cursor-pointer relative overflow-visible group
-                                    ${selectedInBoard?.x === cIdx && selectedInBoard?.y === rIdx ? 'border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.3)] z-20 bg-emerald-400/10' : ''}
+                                    ${selectedInBoard?.x === cIdx && selectedInBoard?.y === rIdx ? 'border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.3)] bg-emerald-400/10' : ''}
                                     ${cell && !cell.isDead ? (cell.team === 'PLAYER' ? 'bg-[#1c2e24] border-emerald-500/40 hover:border-emerald-400' : 'bg-[#2a1a1a] border-rose-500/40') : 'bg-white/[0.02] border-white/5 hover:bg-white/5'}`}
                             >
                                 {cell && !cell.isDead && (
@@ -1472,22 +1498,22 @@ const App: React.FC = () => {
                                         </div>
 
                                         {/* Footer: Status Bars + Stars */}
-                                        <div className="flex items-center gap-2 mt-2 w-full justify-center">
+                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-full flex items-center justify-center gap-1 z-50 pointer-events-none">
                                             {/* Bars */}
-                                            <div className="flex flex-col gap-1 w-[60px]">
-                                                <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-black/20 shadow-inner">
+                                            <div className="flex flex-col gap-0.5 w-[70px] drop-shadow-md">
+                                                <div className="w-full h-1.5 bg-black/80 rounded-full overflow-hidden border border-white/10">
                                                     <div className={`h-full ${cell.team === 'PLAYER' ? 'bg-emerald-400' : 'bg-rose-500'}`} style={{ width: `${(cell.currentHp / cell.maxHp) * 100}%` }} />
                                                 </div>
-                                                <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden border border-black/20 shadow-inner">
+                                                <div className="w-full h-1 bg-black/80 rounded-full overflow-hidden border border-white/10">
                                                     <div className="h-full bg-blue-400" style={{ width: `${cell.currentMana}%` }} />
                                                 </div>
                                             </div>
 
                                             {/* Stars (Next to bars) */}
                                             {cell.stars > 1 && (
-                                                <div className="flex gap-1">
+                                                <div className="flex gap-0.5">
                                                     {Array(cell.stars).fill(0).map((_, i) => (
-                                                        <div key={i} className="w-2.5 h-2.5 rotate-45 bg-yellow-400 shadow-[0_0_5px_rgba(251,191,36,0.9)] border border-black/20" />
+                                                        <div key={i} className="w-2 h-2 rotate-45 bg-yellow-400 shadow-[0_0_5px_rgba(251,191,36,0.9)] border border-black/20" />
                                                     ))}
                                                 </div>
                                             )}

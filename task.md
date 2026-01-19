@@ -61,7 +61,7 @@
 - [x] **Melhoria: IA de Movimento (Side-stepping / Flanking)**
 - [x] **Feedback Visual: Números de Dano Flutuantes (Floating Text)**
 - [x] **Projetéis: Sistema de Tiro para Unidades Ranged**
-- [ ] Polimento Visual para Ativação de Habilidades
+- [x] **Polimento Visual para Ativação de Habilidades (Animações de Ult)**
 
 # Expansão de Conteúdo (Set 1)
 - [x] Projetar e Implementar 30 Unidades (6 per Tier)
