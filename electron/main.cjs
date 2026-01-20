@@ -1,6 +1,11 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
+const { autoUpdater } = require('electron-updater');
 const isDev = !app.isPackaged;
+
+// Configuração básica do auto-updater
+autoUpdater.autoDownload = true;
+autoUpdater.allowPrerelease = false;
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -29,9 +34,22 @@ function createWindow() {
 app.whenReady().then(() => {
     createWindow();
 
+    if (!isDev) {
+        autoUpdater.checkForUpdatesAndNotify();
+    }
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
+});
+
+// Eventos do Auto-updater para feedback (opcional: pode logar ou mandar pro front)
+autoUpdater.on('update-available', () => {
+    console.log('Atualização disponível!');
+});
+
+autoUpdater.on('update-downloaded', () => {
+    console.log('Atualização baixada. O jogo será atualizado ao reiniciar.');
 });
 
 app.on('window-all-closed', () => {

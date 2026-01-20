@@ -6,7 +6,7 @@
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "electron:dev": "electron .",
     "dist": "npm run build && electron-builder"
@@ -21,15 +21,31 @@
       "dist/**/*",
       "electron/**/*"
     ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "nizeragg-del",
+        "repo": "tft"
+      }
+    ],
     "win": {
       "target": "nsis",
-      "icon": "public/favicon.ico"
+      "icon": "public/icon.png",
+      "forceCodeSigning": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Nexus Tactics"
     }
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.13",
     "@supabase/supabase-js": "^2.90.1",
     "clsx": "^2.1.1",
+    "electron-updater": "^6.7.3",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.284.0",
     "react": "^18.2.0",
